@@ -1,0 +1,30 @@
+# dependencies
+node_modules/
+
+# env files (secrets)
+.env
+.env.local
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Python
+__pycache__/
+*.pyc
+.venv/
+venv/
+*.egg-info/
+
+# IDE
+.vscode/
+.idea/
+
+# Next.js
+.next/
+out/
+
+# misc
+*.pem
+.vercel
+.pytest_cache/
