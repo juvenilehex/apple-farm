@@ -10,7 +10,7 @@ const navGroups = [
   {
     label: '정보',
     items: [
-      { href: '/', label: '대시보드', description: '종합 현황' },
+      { href: '/monthly', label: '이달의 농사', description: '월별 현황·작업' },
       { href: '/varieties', label: '품종 도감', description: '40+ 품종 DB' },
       { href: '/calendar', label: '농작업 캘린더', description: '월별 작업 가이드' },
     ],
@@ -215,10 +215,10 @@ export default function Sidebar() {
         style={{ background: theme === 'dark' ? 'rgba(10, 10, 10, 0.92)' : 'rgba(247, 245, 242, 0.92)', backdropFilter: 'blur(12px)', borderColor: 'var(--border-default)' }}>
         {[
           { href: '/', label: '홈' },
+          { href: '/monthly', label: '이달' },
           { href: '/varieties', label: '품종' },
-          { href: '/calendar', label: '작업' },
           { href: '/producer/spray', label: '방제' },
-          { href: '/consumer/guide', label: '가이드' },
+          { href: '/price', label: '시세' },
         ].map((item) => {
           const isActive = item.href === '/' ? pathname === '/' : pathname.startsWith(item.href);
           return (
@@ -234,12 +234,6 @@ export default function Sidebar() {
             </Link>
           );
         })}
-        <Link href="/price" className="flex w-14 flex-col items-center gap-0.5 pb-2 pt-2">
-          <span className="text-[11px] font-medium"
-            style={{ color: pathname.startsWith('/price') ? 'var(--accent)' : 'var(--text-muted)' }}>
-            시세
-          </span>
-        </Link>
       </nav>
     </>
   );
