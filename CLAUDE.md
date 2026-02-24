@@ -75,10 +75,75 @@ pj18_apple/
     ├── services/          # 비즈니스 로직
     │   ├── orchard.py     # 밭 설계 계산
     │   ├── simulation.py  # 수익 시뮬레이션 (10년 추이)
-    │   └── variety.py     # 품종 추천 (지역/우선순위 기반)
+    │   ├── variety.py     # 품종 추천 (지역/우선순위 기반)
+    │   └── data_refresher.py  # 공공데이터 자동 갱신 (날씨 3h, 가격 6h)
+    ├── data/              # 런타임 데이터
+    │   └── refresh_log.jsonl  # 갱신 이력 (append-only JSONL)
     ├── models/            # DB 모델 (SQLAlchemy)
     │   └── base.py        # PriceHistory, WeatherCache, OrchardPlan
     └── core/              # 설정, DB, 공통 유틸
         ├── config.py      # pydantic-settings (.env)
         └── database.py    # async SQLAlchemy
 ```
+
+---
+
+## 컨설팅 가이드 (PJ00_develop)
+
+> 출처: `PJ00_develop/consulting/FRAMEWORK.md` 6개 렌즈 진단
+> 상세: `PJ00_develop/projects/diagnostics/pj18_apple.md`
+
+| 렌즈 | 점수 | 핵심 |
+|------|------|------|
+| 워크플로우 | 3/5 ⚠️ | 밭설계→시뮬레이션 흐름 있음, AI 워크플로우 미도입 |
+| 품질루프 | 3/5 🟡 | 가정 투명화 + SimulationAnalytics 실행 분석 (2026.02.23) |
+| 진화 | 1/5 ❌ | Phase 1 초기 단계 |
+| 지식구조 | 4/5 ⚠️ | 공공데이터 7개 API + CostCategory/AppleGrade/VarietyCategory Enum 중앙화 (2026.02.23) |
+| 자율성 | 2/5 | Lv2, 공공데이터 자동 갱신 (날씨 3h, 가격 6h) + 수동 트리거 (2026.02.24) |
+| 학습순환 | 3/5 🟡 | Clarity + SimulationAnalytics (품종별 인기도/ROI/손익분기 추적) |
+
+**✅ Clarity 추가 (2026.02.22)**: layout.tsx에 Microsoft Clarity 삽입, NEXT_PUBLIC_CLARITY_ID 환경변수
+**✅ Enum 중앙화 (2026.02.23)**: `backend/core/enums.py` — CostCategory, AppleGrade, VarietyCategory
+**✅ 가정 투명화 (2026.02.23)**: `docs/SIMULATION_ASSUMPTIONS.md` — 모든 시뮬레이션 가정·한계·검증상태
+**✅ 실행 분석 (2026.02.23)**: `services/simulation_analytics.py` — 링버퍼 기반 품종별/면적별/ROI 통계 + GET /analytics
+**✅ 공공데이터 자동 갱신 (2026.02.24)**: `services/data_refresher.py` — 기상청 3h + KAMIS 6h 자동 갱신, JSONL 로그, lifespan 스케줄러 + CLI
+**최우선 과제**: 실제 농가 데이터와 시뮬레이션 교차 검증 (KAMIS API 연동)
+**Phase 2 준비**: Clarity 데이터 분석 → 60대 타겟 UI 어디서 막히는지 추적
+
+---
+
+## 공공데이터 자동 갱신 시스템 (Data Refresh)
+
+### 개요
+서버 기동 시 `DataRefresher` 스케줄러가 백그라운드에서 자동 실행된다.
+기상청(KMA) 날씨와 KAMIS 사과 경매가격을 주기적으로 갱신하며,
+모든 시도를 `backend/data/refresh_log.jsonl`에 append-only 기록한다.
+
+### 갱신 주기
+| 소스 | 주기 | API |
+|------|------|-----|
+| 날씨 (weather) | 3시간 | 기상청 초단기실황 + 단기예보 |
+| 가격 (prices) | 6시간 | KAMIS 당일 경매가격 |
+
+### 엔드포인트
+- `GET /api/refresh/status` — 갱신 상태 (최근 갱신 시각, 성공/실패 횟수, 스케줄러 상태)
+- `POST /api/refresh/trigger?source=all|weather|prices` — 수동 갱신 트리거
+
+### CLI 수동 실행
+```bash
+cd backend
+python -m services.data_refresher --all       # 전체 갱신
+python -m services.data_refresher --weather   # 날씨만
+python -m services.data_refresher --prices    # 가격만
+```
+
+### 로그 형식 (refresh_log.jsonl)
+```json
+{"timestamp": "2026-02-24T...", "source": "weather", "success": true, "records_count": 12, "error": null, "duration_ms": 450}
+```
+
+### 설계 원칙
+- **무중단**: API 실패 시 로그 기록 후 계속 (서버 크래시 없음)
+- **API 키 미설정 시**: 조용히 스킵 (mock 데이터 없이 빈 결과)
+- **의존성 0**: asyncio 기반, 외부 스케줄러 라이브러리 불필요
+- **lifespan 통합**: FastAPI lifespan 에서 시작/종료 관리

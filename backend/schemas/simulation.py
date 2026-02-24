@@ -33,6 +33,40 @@ class SimulationRequest(BaseModel):
     projection_years: int = 10
 
 
+class AnalyticsContext(BaseModel):
+    """과거 시뮬레이션 대비 현재 결과 비교 맥락"""
+    total_past_runs: int
+    avg_roi: float
+    roi_delta: float  # 현재 ROI - 평균 ROI
+    avg_break_even: float
+    break_even_delta: float  # 현재 - 평균 (음수 = 더 빠름)
+    same_variety_count: int
+    most_popular_variety: str
+
+
+class FeedbackRequest(BaseModel):
+    """시뮬레이션 결과 피드백 (feedback-system R48)."""
+    variety: str
+    area_pyeong: float
+    rating: str  # "helpful" | "inaccurate" | "needs_detail"
+    comment: str = ""
+
+
+class FeedbackStats(BaseModel):
+    """피드백 통계 스냅샷."""
+    total: int = 0
+    helpful_rate: float = 0.0
+    recent_issues: list[str] = []
+    variety_breakdown: dict[str, dict] = {}
+
+
+class ValidationNote(BaseModel):
+    """시뮬레이션 자가검증 결과 항목 (self-refine-loop R51)."""
+    severity: str  # "info" | "warning" | "caution"
+    field: str
+    message: str
+
+
 class SimulationResponse(BaseModel):
     variety: str
     area_pyeong: float
@@ -49,3 +83,6 @@ class SimulationResponse(BaseModel):
     yearly_projections: list[YearlyProjection]
     break_even_year: int
     roi_10year: float
+    analytics_context: AnalyticsContext | None = None
+    validation_notes: list[ValidationNote] | None = None
+    refined: bool = False

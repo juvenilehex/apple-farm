@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from core.enums import variety_cat_tracker
 from schemas.variety import (
     RecommendRequest,
     RecommendResponse,
@@ -120,6 +121,8 @@ def recommend(req: RecommendRequest) -> RecommendResponse:
 
     scored: list[RecommendScore] = []
     for v in VARIETIES:
+        # L4=5: 품종 카테고리 사용 기록
+        variety_cat_tracker.record(v["category"])
         # 기본 점수 계산
         score = sum(v.get(attr, 3) * weight for attr, weight in weights.items())
 

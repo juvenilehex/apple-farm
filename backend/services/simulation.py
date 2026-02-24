@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from core.enums import CostCategory, AppleGrade, grade_tracker, cost_cat_tracker
 from schemas.simulation import (
     SimulationRequest,
     SimulationResponse,
@@ -20,82 +21,82 @@ SCENARIOS: dict[str, dict] = {
         "yield_per_10a": 2500,
         "price_per_kg": 5500,
         "grades": [
-            {"grade": "특", "ratio": 0.30, "multiplier": 1.0},
-            {"grade": "상", "ratio": 0.40, "multiplier": 0.8},
-            {"grade": "보통", "ratio": 0.20, "multiplier": 0.6},
-            {"grade": "비품", "ratio": 0.10, "multiplier": 0.3},
+            {"grade": AppleGrade.PREMIUM, "ratio": 0.30, "multiplier": 1.0},
+            {"grade": AppleGrade.EXCELLENT, "ratio": 0.40, "multiplier": 0.8},
+            {"grade": AppleGrade.STANDARD, "ratio": 0.20, "multiplier": 0.6},
+            {"grade": AppleGrade.SUBSTANDARD, "ratio": 0.10, "multiplier": 0.3},
         ],
     },
     "홍로": {
         "yield_per_10a": 2200,
         "price_per_kg": 6000,
         "grades": [
-            {"grade": "특", "ratio": 0.25, "multiplier": 1.0},
-            {"grade": "상", "ratio": 0.40, "multiplier": 0.8},
-            {"grade": "보통", "ratio": 0.25, "multiplier": 0.6},
-            {"grade": "비품", "ratio": 0.10, "multiplier": 0.3},
+            {"grade": AppleGrade.PREMIUM, "ratio": 0.25, "multiplier": 1.0},
+            {"grade": AppleGrade.EXCELLENT, "ratio": 0.40, "multiplier": 0.8},
+            {"grade": AppleGrade.STANDARD, "ratio": 0.25, "multiplier": 0.6},
+            {"grade": AppleGrade.SUBSTANDARD, "ratio": 0.10, "multiplier": 0.3},
         ],
     },
     "감홍": {
         "yield_per_10a": 1800,
         "price_per_kg": 8000,
         "grades": [
-            {"grade": "특", "ratio": 0.20, "multiplier": 1.0},
-            {"grade": "상", "ratio": 0.35, "multiplier": 0.8},
-            {"grade": "보통", "ratio": 0.30, "multiplier": 0.6},
-            {"grade": "비품", "ratio": 0.15, "multiplier": 0.3},
+            {"grade": AppleGrade.PREMIUM, "ratio": 0.20, "multiplier": 1.0},
+            {"grade": AppleGrade.EXCELLENT, "ratio": 0.35, "multiplier": 0.8},
+            {"grade": AppleGrade.STANDARD, "ratio": 0.30, "multiplier": 0.6},
+            {"grade": AppleGrade.SUBSTANDARD, "ratio": 0.15, "multiplier": 0.3},
         ],
     },
     "아리수": {
         "yield_per_10a": 2300,
         "price_per_kg": 5000,
         "grades": [
-            {"grade": "특", "ratio": 0.30, "multiplier": 1.0},
-            {"grade": "상", "ratio": 0.40, "multiplier": 0.8},
-            {"grade": "보통", "ratio": 0.20, "multiplier": 0.6},
-            {"grade": "비품", "ratio": 0.10, "multiplier": 0.3},
+            {"grade": AppleGrade.PREMIUM, "ratio": 0.30, "multiplier": 1.0},
+            {"grade": AppleGrade.EXCELLENT, "ratio": 0.40, "multiplier": 0.8},
+            {"grade": AppleGrade.STANDARD, "ratio": 0.20, "multiplier": 0.6},
+            {"grade": AppleGrade.SUBSTANDARD, "ratio": 0.10, "multiplier": 0.3},
         ],
     },
     "시나노골드": {
         "yield_per_10a": 2000,
         "price_per_kg": 6500,
         "grades": [
-            {"grade": "특", "ratio": 0.25, "multiplier": 1.0},
-            {"grade": "상", "ratio": 0.40, "multiplier": 0.8},
-            {"grade": "보통", "ratio": 0.25, "multiplier": 0.6},
-            {"grade": "비품", "ratio": 0.10, "multiplier": 0.3},
+            {"grade": AppleGrade.PREMIUM, "ratio": 0.25, "multiplier": 1.0},
+            {"grade": AppleGrade.EXCELLENT, "ratio": 0.40, "multiplier": 0.8},
+            {"grade": AppleGrade.STANDARD, "ratio": 0.25, "multiplier": 0.6},
+            {"grade": AppleGrade.SUBSTANDARD, "ratio": 0.10, "multiplier": 0.3},
         ],
     },
     "루비에스": {
         "yield_per_10a": 2000,
         "price_per_kg": 7000,
         "grades": [
-            {"grade": "특", "ratio": 0.25, "multiplier": 1.0},
-            {"grade": "상", "ratio": 0.35, "multiplier": 0.8},
-            {"grade": "보통", "ratio": 0.25, "multiplier": 0.6},
-            {"grade": "비품", "ratio": 0.15, "multiplier": 0.3},
+            {"grade": AppleGrade.PREMIUM, "ratio": 0.25, "multiplier": 1.0},
+            {"grade": AppleGrade.EXCELLENT, "ratio": 0.35, "multiplier": 0.8},
+            {"grade": AppleGrade.STANDARD, "ratio": 0.25, "multiplier": 0.6},
+            {"grade": AppleGrade.SUBSTANDARD, "ratio": 0.15, "multiplier": 0.3},
         ],
     },
 }
 
 # 10a당 비용 항목 (producer.ts costItems 동기화)
 COST_ITEMS: list[dict] = [
-    {"category": "자재비", "name": "비료 (기비+추비)", "amount": 150_000},
-    {"category": "자재비", "name": "퇴비", "amount": 200_000},
-    {"category": "자재비", "name": "농약 (살균+살충)", "amount": 350_000},
-    {"category": "자재비", "name": "봉지", "amount": 80_000},
-    {"category": "자재비", "name": "반사필름·피복자재", "amount": 60_000},
-    {"category": "자재비", "name": "포장재·상자", "amount": 120_000},
-    {"category": "노동비", "name": "전정", "amount": 200_000},
-    {"category": "노동비", "name": "적과", "amount": 300_000},
-    {"category": "노동비", "name": "방제", "amount": 150_000},
-    {"category": "노동비", "name": "수확", "amount": 250_000},
-    {"category": "노동비", "name": "기타 (관수·시비·잡초)", "amount": 200_000},
-    {"category": "고정비", "name": "토지 임차료", "amount": 300_000},
-    {"category": "고정비", "name": "농기계 감가상각", "amount": 200_000},
-    {"category": "고정비", "name": "지주·시설", "amount": 100_000},
-    {"category": "고정비", "name": "유류·전기료", "amount": 120_000},
-    {"category": "고정비", "name": "농작물재해보험", "amount": 80_000},
+    {"category": CostCategory.MATERIALS, "name": "비료 (기비+추비)", "amount": 150_000},
+    {"category": CostCategory.MATERIALS, "name": "퇴비", "amount": 200_000},
+    {"category": CostCategory.MATERIALS, "name": "농약 (살균+살충)", "amount": 350_000},
+    {"category": CostCategory.MATERIALS, "name": "봉지", "amount": 80_000},
+    {"category": CostCategory.MATERIALS, "name": "반사필름·피복자재", "amount": 60_000},
+    {"category": CostCategory.MATERIALS, "name": "포장재·상자", "amount": 120_000},
+    {"category": CostCategory.LABOR, "name": "전정", "amount": 200_000},
+    {"category": CostCategory.LABOR, "name": "적과", "amount": 300_000},
+    {"category": CostCategory.LABOR, "name": "방제", "amount": 150_000},
+    {"category": CostCategory.LABOR, "name": "수확", "amount": 250_000},
+    {"category": CostCategory.LABOR, "name": "기타 (관수·시비·잡초)", "amount": 200_000},
+    {"category": CostCategory.FIXED, "name": "토지 임차료", "amount": 300_000},
+    {"category": CostCategory.FIXED, "name": "농기계 감가상각", "amount": 200_000},
+    {"category": CostCategory.FIXED, "name": "지주·시설", "amount": 100_000},
+    {"category": CostCategory.FIXED, "name": "유류·전기료", "amount": 120_000},
+    {"category": CostCategory.FIXED, "name": "농작물재해보험", "amount": 80_000},
 ]
 
 # 연차별 수확 비율 (유목 -> 성목)
@@ -132,14 +133,15 @@ def simulate(req: SimulationRequest) -> SimulationResponse:
     area_10a = area_m2 / 1000
 
     # 등급별 분포
-    grades = [
-        GradeDistribution(
+    grades = []
+    for g in scenario["grades"]:
+        # L4=5: 등급 사용 기록
+        grade_tracker.record(g["grade"])
+        grades.append(GradeDistribution(
             grade=g["grade"],
             ratio=g["ratio"],
             price_multiplier=g["multiplier"],
-        )
-        for g in scenario["grades"]
-    ]
+        ))
 
     # 연간 매출 (성목 기준)
     total_yield = yield_per_10a * area_10a
@@ -150,14 +152,15 @@ def simulate(req: SimulationRequest) -> SimulationResponse:
     annual_revenue = int(total_yield * weighted_price)
 
     # 연간 비용
-    cost_breakdown = [
-        CostBreakdown(
+    cost_breakdown = []
+    for c in COST_ITEMS:
+        # L4=5: 비용 분류 사용 기록
+        cost_cat_tracker.record(c["category"])
+        cost_breakdown.append(CostBreakdown(
             category=c["category"],
             name=c["name"],
             amount=int(c["amount"] * area_10a),
-        )
-        for c in COST_ITEMS
-    ]
+        ))
     annual_cost = int(sum(c["amount"] for c in COST_ITEMS) * area_10a)
     annual_profit = annual_revenue - annual_cost
     income_ratio = annual_profit / annual_revenue if annual_revenue > 0 else 0
