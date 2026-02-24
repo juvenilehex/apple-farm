@@ -27,8 +27,8 @@ def test_simulation_fuji(client):
     assert data["annual_profit"] > 0
     assert 0 < data["income_ratio"] < 1
 
-    # 비용 내역
-    assert len(data["cost_breakdown"]) == 16
+    # 비용 내역 (기본 16 + 숨은비용 3)
+    assert len(data["cost_breakdown"]) == 19
 
     # 연도별 추이 (기본 10년)
     assert len(data["yearly_projections"]) == 10

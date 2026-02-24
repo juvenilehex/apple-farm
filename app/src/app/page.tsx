@@ -2,6 +2,7 @@ import Link from 'next/link';
 import StatisticsPanel from '@/components/dashboard/StatisticsPanel';
 import WeatherWidget from '@/components/dashboard/WeatherWidget';
 import PriceWidget from '@/components/dashboard/PriceWidget';
+import DataSources, { SOURCES } from '@/components/ui/DataSources';
 
 export default function Home() {
   const now = new Date();
@@ -226,6 +227,12 @@ export default function Home() {
 
         <PriceWidget />
       </section>
+
+      <DataSources
+        sources={[SOURCES.KMA, SOURCES.KAMIS, SOURCES.KOSIS, SOURCES.RDA]}
+        updatedAt="2024년"
+        note="데모 환경에서는 시뮬레이션 데이터가 표시됩니다. 실제 API 연동 시 실시간 데이터로 전환됩니다."
+      />
     </div>
   );
 }
@@ -244,18 +251,18 @@ function getHarvestVarieties(month: number) {
       { id: 'piknik', name: '피크닉', period: '9월 중순', sweetness: 15.5 },
     ],
     10: [
-      { id: 'gamhong', name: '감홍', period: '10월 상~중순', sweetness: 17 },
+      { id: 'gamhong', name: '감홍', period: '10월 상~중순', sweetness: 15.5 },
       { id: 'arisoo', name: '아리수', period: '10월 상~중순', sweetness: 15 },
       { id: 'sinano-gold', name: '시나노골드', period: '10월 중~하순', sweetness: 15 },
-      { id: 'ruby-s', name: '루비에스', period: '10월 중~하순', sweetness: 16 },
+      { id: 'ruby-s', name: '루비에스', period: '10월 중~하순', sweetness: 14.5 },
     ],
     11: [
-      { id: 'fuji', name: '후지', period: '10월 하순~11월 중순', sweetness: 16 },
-      { id: 'fuji-miyama', name: '미야마후지', period: '10월 하순~11월', sweetness: 16 },
+      { id: 'fuji', name: '후지', period: '10월 하순~11월 중순', sweetness: 14.5 },
+      { id: 'fuji-miyama', name: '미야마후지', period: '10월 하순~11월', sweetness: 14.5 },
       { id: 'pink-lady', name: '핑크레이디', period: '11월 상~중순', sweetness: 15 },
     ],
     12: [
-      { id: 'fuji', name: '후지 (저장)', period: '냉장 저장 출하', sweetness: 16 },
+      { id: 'fuji', name: '후지 (저장)', period: '냉장 저장 출하', sweetness: 14.5 },
     ],
   };
   return data[month] || [];

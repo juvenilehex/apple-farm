@@ -5,7 +5,7 @@ export interface AppleVariety {
   origin: string;
   harvestPeriod: string;
   harvestMonth: number[];
-  sweetness: number; // brix
+  sweetness: number; // 평균 Brix (농촌진흥청 기준, 재배환경에 따라 ±1~2 변동)
   acidity: number; // 1-5 scale
   size: string;
   weight: string;
@@ -15,13 +15,18 @@ export interface AppleVariety {
   coldHardiness: number; // 1-5
   marketValue: number; // 1-5
   popularity: number; // 1-5
-  yieldPerTree: string; // kg
+  yieldPerTree: string; // kg/주, M26 반왜성 대목 성목 기준 (M9 왜성은 60~70% 수준)
   yearsToFruit: number;
   pollination: string;
   spacing: { row: number; tree: number }; // meters
   description: string;
   tips: string;
   category: 'early' | 'mid' | 'late' | 'very-late';
+  // 시장 점유율 (재배면적 기준, %)
+  marketShareKR?: number;   // 국내 점유율
+  marketShareGlobal?: number; // 세계 점유율
+  trend?: 'rising' | 'stable' | 'declining'; // 재배 추세
+  trendNote?: string; // 추세 설명
 }
 
 export const varieties: AppleVariety[] = [
@@ -50,6 +55,10 @@ export const varieties: AppleVariety[] = [
     category: 'early',
     description: '국내에서 가장 빨리 출하되는 조생종. 아삭한 식감과 달콤한 맛이 특징이며, 여름 사과 시장을 주도합니다.',
     tips: '착색이 잘 안되므로 반사필름 설치 권장. 수확 시기를 놓치면 과육이 분질화됩니다.',
+    marketShareKR: 6.3,
+    marketShareGlobal: 1.2,
+    trend: 'declining',
+    trendNote: '갈라·썸머킹에 밀려 조생종 점유율 감소 추세',
   },
   {
     id: 'summer-king',
@@ -75,6 +84,9 @@ export const varieties: AppleVariety[] = [
     category: 'early',
     description: '국산 육성 조생종. 쓰가루보다 착색이 좋고 당도가 높아 프리미엄 여름 사과로 주목받고 있습니다.',
     tips: '비가림 재배 시 품질 향상. 적과를 철저히 해야 대과 생산 가능.',
+    marketShareKR: 0.8,
+    trend: 'rising',
+    trendNote: '국산 조생종으로 쓰가루 대체 수요 증가',
   },
   {
     id: 'gala',
@@ -100,6 +112,10 @@ export const varieties: AppleVariety[] = [
     category: 'early',
     description: '전 세계적으로 가장 많이 재배되는 품종 중 하나. 달콤하고 아삭한 식감으로 어린이 간식용으로 인기.',
     tips: '왜화재배 적합. 과다 착과 시 격년결과 발생 주의.',
+    marketShareKR: 1.5,
+    marketShareGlobal: 13.2,
+    trend: 'stable',
+    trendNote: '세계 1위 품종, 국내는 소규모 재배',
   },
   {
     id: 'hongjeon',
@@ -125,6 +141,8 @@ export const varieties: AppleVariety[] = [
     category: 'early',
     description: '농촌진흥청 육성 신품종. 착색이 우수하고 대과 생산이 가능한 고품질 조생종.',
     tips: '신품종이라 묘목 확보가 어려울 수 있음. 적과 시 1과당 엽수 40매 이상 확보.',
+    marketShareKR: 0.5,
+    trend: 'stable',
   },
 
   // === 중생종 (Mid Season) ===
@@ -152,6 +170,10 @@ export const varieties: AppleVariety[] = [
     category: 'mid',
     description: '추석 선물용으로 최고 인기. 국산 사과의 자존심으로 불리며, 착색과 당도가 뛰어납니다. 국내 재배면적 2위.',
     tips: '추석 시세에 맞춰 수확 시기 조절이 핵심. 과다 착과 방지하여 대과 생산.',
+    marketShareKR: 9.1,
+    marketShareGlobal: 0.3,
+    trend: 'stable',
+    trendNote: '추석 시즌 대표 중생종, 안정적 점유율',
   },
   {
     id: 'chunchu',
@@ -177,6 +199,8 @@ export const varieties: AppleVariety[] = [
     category: 'mid',
     description: '홍로의 후속 품종으로 대과 생산이 용이하고 착색이 우수합니다.',
     tips: '홍로 대비 수확기가 약간 늦으므로 추석 출하 시 재배지역 고려.',
+    marketShareKR: 0.4,
+    trend: 'declining',
   },
   {
     id: 'piknik',
@@ -202,6 +226,9 @@ export const varieties: AppleVariety[] = [
     category: 'mid',
     description: '겹무늬병 저항성 품종. 기후변화로 병해가 증가하는 상황에서 대안 품종으로 주목.',
     tips: '저항성 품종이지만 완전 면역은 아니므로 최소한의 방제는 필요.',
+    marketShareKR: 0.3,
+    trend: 'rising',
+    trendNote: '소비자 인지도 상승, 체험농장 중심 확대',
   },
   {
     id: 'jonathan',
@@ -227,6 +254,9 @@ export const varieties: AppleVariety[] = [
     category: 'mid',
     description: '강한 신맛이 특징인 요리/가공용 사과. 사과파이, 사과잼, 사과식초에 최적.',
     tips: '생과 판매보다 가공용으로 차별화. 6차산업 연계 시 고부가가치 가능.',
+    marketShareKR: 0.2,
+    trend: 'declining',
+    trendNote: '고령 농가 잔존, 신규 식재 거의 없음',
   },
 
   // === 만생종 (Late Season) ===
@@ -237,7 +267,7 @@ export const varieties: AppleVariety[] = [
     origin: '일본 (1962)',
     harvestPeriod: '10월 하순 ~ 11월 중순',
     harvestMonth: [10, 11],
-    sweetness: 16,
+    sweetness: 14.5,
     acidity: 3,
     size: '대과 (350~400g)',
     weight: '350~400g',
@@ -254,6 +284,10 @@ export const varieties: AppleVariety[] = [
     category: 'late',
     description: '한국 사과의 대명사. 전체 재배면적의 60% 이상을 차지하며 높은 당도와 뛰어난 저장성이 최대 장점. 설 선물용 최고 인기.',
     tips: '11월 서리 전 수확 완료. 꼭지따기(줄무늬 부사) vs 무봉지(양광 부사) 선택. M9 대목 왜화재배 추세.',
+    marketShareKR: 58.2,
+    marketShareGlobal: 15.8,
+    trend: 'declining',
+    trendNote: '절대 주류이나 기후변화·품종 다양화로 점진 감소',
   },
   {
     id: 'fuji-miyama',
@@ -262,7 +296,7 @@ export const varieties: AppleVariety[] = [
     origin: '일본',
     harvestPeriod: '10월 하순 ~ 11월 상순',
     harvestMonth: [10, 11],
-    sweetness: 16,
+    sweetness: 14.5,
     acidity: 3,
     size: '대과 (350~400g)',
     weight: '350~400g',
@@ -279,6 +313,9 @@ export const varieties: AppleVariety[] = [
     category: 'late',
     description: '후지의 착색계 변이종. 일반 후지보다 착색이 월등히 좋아 외관 품질이 우수합니다.',
     tips: '반사필름 없이도 착색 가능하여 노동력 절감.',
+    marketShareKR: 2.4,
+    trend: 'rising',
+    trendNote: '착색 우수로 일반 후지에서 전환 증가',
   },
   {
     id: 'gamhong',
@@ -287,7 +324,7 @@ export const varieties: AppleVariety[] = [
     origin: '한국 (1992)',
     harvestPeriod: '10월 상순 ~ 10월 중순',
     harvestMonth: [10],
-    sweetness: 17,
+    sweetness: 15.5,
     acidity: 3,
     size: '대과 (350~400g)',
     weight: '350~400g',
@@ -304,6 +341,10 @@ export const varieties: AppleVariety[] = [
     category: 'late',
     description: '꿀사과로 불리는 최고 당도 품종. 독특한 향기와 밀이 가득 찬 과육이 특징. 프리미엄 시장에서 높은 가격대 형성.',
     tips: '재배 난이도가 높고 해거리가 심함. 적과를 철저히 하고 수세 관리가 핵심.',
+    marketShareKR: 4.7,
+    marketShareGlobal: 0.1,
+    trend: 'rising',
+    trendNote: '고당도 프리미엄 시장 확대, 선물용 수요 급증',
   },
   {
     id: 'arisoo',
@@ -329,6 +370,9 @@ export const varieties: AppleVariety[] = [
     category: 'late',
     description: '농촌진흥청 육성 만생종. 후지 대체 품종으로 육성되었으며 병해충 저항성이 우수합니다.',
     tips: '후지 대비 수확기가 2~3주 빠르므로 노동력 분산에 유리.',
+    marketShareKR: 1.8,
+    trend: 'rising',
+    trendNote: '국산 육성 품종, 정부 보급 확대 정책',
   },
   {
     id: 'hwangok',
@@ -337,7 +381,7 @@ export const varieties: AppleVariety[] = [
     origin: '한국 (2012)',
     harvestPeriod: '10월 상순 ~ 10월 중순',
     harvestMonth: [10],
-    sweetness: 16,
+    sweetness: 14.5,
     acidity: 2,
     size: '대과 (350~400g)',
     weight: '350~400g',
@@ -354,6 +398,8 @@ export const varieties: AppleVariety[] = [
     category: 'late',
     description: '황금색 사과로 시각적 차별화 가능. 시나노골드 대비 국산 품종이라는 장점.',
     tips: '녹색일 때 수확하면 안됨. 완전히 황금색이 될 때까지 기다려야 상품성 확보.',
+    marketShareKR: 0.3,
+    trend: 'declining',
   },
   {
     id: 'sinano-gold',
@@ -379,6 +425,10 @@ export const varieties: AppleVariety[] = [
     category: 'late',
     description: '황금사과 대표 품종. 유럽에서 인기가 높아 수출 잠재력이 큽니다. 새콤달콤한 맛이 특징.',
     tips: '로열티 문제 확인 필요. 저장성이 좋아 장기 출하 전략 가능.',
+    marketShareKR: 3.2,
+    marketShareGlobal: 1.8,
+    trend: 'rising',
+    trendNote: '황색 사과 트렌드 선도, 일본에서 급성장',
   },
   {
     id: 'ruby-s',
@@ -387,7 +437,7 @@ export const varieties: AppleVariety[] = [
     origin: '한국 (2016)',
     harvestPeriod: '10월 중순 ~ 10월 하순',
     harvestMonth: [10],
-    sweetness: 16,
+    sweetness: 14.5,
     acidity: 3,
     size: '대과 (350~400g)',
     weight: '350~400g',
@@ -404,6 +454,9 @@ export const varieties: AppleVariety[] = [
     category: 'late',
     description: '국산 프리미엄 품종. 후지급 당도에 착색과 저항성이 개선되어 차세대 주력 품종으로 기대.',
     tips: '신품종이므로 소규모 시험 재배 후 면적 확대 권장.',
+    marketShareKR: 0.4,
+    trend: 'rising',
+    trendNote: '고급 선물 시장 진입',
   },
   {
     id: 'granny-smith',
@@ -429,6 +482,10 @@ export const varieties: AppleVariety[] = [
     category: 'late',
     description: '초록 사과의 대명사. 신맛이 강해 요리/제과용으로 최적. 카페/베이커리 납품 시 차별화 가능.',
     tips: '국내 수요가 제한적이므로 판로 확보 후 재배. 카페/레스토랑 직거래 추천.',
+    marketShareKR: 0.1,
+    marketShareGlobal: 4.8,
+    trend: 'stable',
+    trendNote: '국내 소량이나 세계 5위 품종',
   },
   {
     id: 'envy',
@@ -437,7 +494,7 @@ export const varieties: AppleVariety[] = [
     origin: '뉴질랜드 (2008)',
     harvestPeriod: '10월 중순 ~ 10월 하순',
     harvestMonth: [10],
-    sweetness: 16,
+    sweetness: 14.5,
     acidity: 3,
     size: '중대과 (280~350g)',
     weight: '280~350g',
@@ -454,6 +511,10 @@ export const varieties: AppleVariety[] = [
     category: 'late',
     description: '프리미엄 클럽 품종. 갈변이 거의 없어 샐러드/도시락용으로 인기. 고급 백화점에서 높은 가격대.',
     tips: '클럽 품종으로 계약 재배만 가능. 라이선스 비용 확인 필요.',
+    marketShareKR: 0.2,
+    marketShareGlobal: 0.8,
+    trend: 'rising',
+    trendNote: '프리미엄 클럽 품종, 라이선스 재배 확대',
   },
   {
     id: 'honeycrisp',
@@ -479,6 +540,10 @@ export const varieties: AppleVariety[] = [
     category: 'late',
     description: '미국 최고 인기 프리미엄 품종. 아삭한 식감이 일품이며 수출용으로 잠재력이 큽니다.',
     tips: '재배 난이도 높음 (쓴부병 취약). 국내 적응성 시험 필요.',
+    marketShareKR: 0.1,
+    marketShareGlobal: 3.5,
+    trend: 'rising',
+    trendNote: '미국 최고 인기, 국내 시험재배 단계',
   },
 
   // === 추가 국산 품종 ===
@@ -506,6 +571,8 @@ export const varieties: AppleVariety[] = [
     category: 'mid',
     description: '국산 중생종. 추석~김장철 사이 출하 가능하여 출하 공백기를 메울 수 있습니다.',
     tips: '홍로와 후지 사이 수확기로 노동력 분산에 유리.',
+    marketShareKR: 0.2,
+    trend: 'stable',
   },
   {
     id: 'sansa',
@@ -531,6 +598,8 @@ export const varieties: AppleVariety[] = [
     category: 'early',
     description: '가장 이른 수확이 가능한 극조생종. 8월 초 출하로 여름 사과 시장 선점 가능.',
     tips: '저장성이 매우 낮아 즉시 판매 필요. 관광농원/직거래에 적합.',
+    marketShareKR: 0.3,
+    trend: 'declining',
   },
   {
     id: 'world-one',
@@ -539,7 +608,7 @@ export const varieties: AppleVariety[] = [
     origin: '한국 (2020)',
     harvestPeriod: '10월 중순 ~ 10월 하순',
     harvestMonth: [10],
-    sweetness: 16,
+    sweetness: 15,
     acidity: 3,
     size: '대과 (350~450g)',
     weight: '350~450g',
@@ -556,6 +625,8 @@ export const varieties: AppleVariety[] = [
     category: 'late',
     description: '최신 국산 육성 품종. 후지를 능가하는 품질을 목표로 육성. 수출 전략 품종.',
     tips: '최신 품종으로 재배 정보가 제한적. 기술센터 시험포 결과 참고.',
+    marketShareKR: 0.1,
+    trend: 'stable',
   },
   {
     id: 'autumn-glory',
@@ -581,6 +652,8 @@ export const varieties: AppleVariety[] = [
     category: 'late',
     description: '시나몬 향이 특징인 독특한 품종. 차별화된 맛으로 프리미엄 시장 진입 가능.',
     tips: '국내 재배 사례 거의 없음. 시험 재배 필수.',
+    marketShareKR: 0.1,
+    trend: 'stable',
   },
   {
     id: 'cosmic-crisp',
@@ -606,6 +679,9 @@ export const varieties: AppleVariety[] = [
     category: 'late',
     description: '저장성 1년이라는 경이적인 품종. 미국에서 선풍적 인기. 국내 도입 시 연중 출하 가능.',
     tips: '클럽 품종으로 라이선스 필요. 국내 적응성 미검증.',
+    marketShareGlobal: 1.2,
+    trend: 'rising',
+    trendNote: '미국 워싱턴주 집중 재배, 빠른 성장세',
   },
   {
     id: 'orin',
@@ -631,6 +707,9 @@ export const varieties: AppleVariety[] = [
     category: 'late',
     description: '대표적인 청사과. 산미가 적고 당도가 높아 대중적인 맛. 후지와 함께 선물세트 구성 가능.',
     tips: '후지 수분수로도 활용 가능. 혼식 시 수분 효율 향상.',
+    marketShareKR: 0.3,
+    trend: 'declining',
+    trendNote: '황색 사과 시장에서 시나노골드에 밀림',
   },
   {
     id: 'yangkwang',
@@ -656,6 +735,9 @@ export const varieties: AppleVariety[] = [
     category: 'late',
     description: '대과종 청사과. 요리용으로 우수하며 큰 사이즈가 매력. 3배체라 수분수 배치 주의.',
     tips: '3배체이므로 다른 품종의 수분수로 사용 불가. 최소 2품종 혼식 필요.',
+    marketShareKR: 2.8,
+    trend: 'declining',
+    trendNote: '후지에 밀려 감소, 일부 산지만 유지',
   },
   {
     id: 'pink-lady',
@@ -681,6 +763,9 @@ export const varieties: AppleVariety[] = [
     category: 'very-late',
     description: '핑크빛 외관의 프리미엄 품종. 유럽에서 최고 인기. 새콤달콤 밸런스가 뛰어남.',
     tips: '만숙종으로 국내 일부 지역에서만 재배 가능. 서리 위험 관리 필수.',
+    marketShareGlobal: 3.1,
+    trend: 'rising',
+    trendNote: '세계적 프리미엄 브랜드, 클럽 품종',
   },
   {
     id: 'cheonchuhyang',
@@ -706,6 +791,8 @@ export const varieties: AppleVariety[] = [
     category: 'mid',
     description: '향기가 뛰어난 최신 국산 품종. 감홍의 향기와 높은 당도를 계승하면서 재배 안정성 개선.',
     tips: '최신 품종으로 묘목 수급이 제한적. 농업기술센터 문의.',
+    marketShareKR: 0.2,
+    trend: 'stable',
   },
   {
     id: 'golden-delicious',
@@ -731,6 +818,10 @@ export const varieties: AppleVariety[] = [
     category: 'late',
     description: '전 세계적으로 유명한 황금사과. 많은 신품종의 교배 부본으로 사용되는 역사적 품종.',
     tips: '녹반점(러셋) 발생 주의. 봉지 씌우기로 외관 품질 향상.',
+    marketShareKR: 0.1,
+    marketShareGlobal: 9.5,
+    trend: 'declining',
+    trendNote: '세계 3위이나 국내 거의 없음',
   },
   {
     id: 'jonagold',
@@ -756,6 +847,9 @@ export const varieties: AppleVariety[] = [
     category: 'late',
     description: '유럽에서 인기 높은 대과종. 새콤달콤한 맛의 밸런스가 좋아 요리용으로도 우수.',
     tips: '3배체 품종. 양광과 마찬가지로 수분수 배치 계획 필수.',
+    marketShareKR: 0.2,
+    marketShareGlobal: 2.0,
+    trend: 'declining',
   },
   {
     id: 'mishima',
@@ -781,6 +875,8 @@ export const varieties: AppleVariety[] = [
     category: 'late',
     description: '후지의 변이종으로 착색이 개선된 품종. 기존 후지 과원의 고접갱신에 많이 사용.',
     tips: '후지와 동일한 관리. 고접갱신 시 2~3년 후 수확 가능.',
+    marketShareKR: 0.4,
+    trend: 'stable',
   },
   {
     id: 'beni-shogun',
@@ -806,6 +902,9 @@ export const varieties: AppleVariety[] = [
     category: 'mid',
     description: '후지의 조숙 변이종. 후지와 비슷한 맛을 한 달 일찍 즐길 수 있어 추석 출하 가능.',
     tips: '일반 후지보다 착색이 빠름. 추석 시세를 노린다면 유력 대안.',
+    marketShareKR: 0.5,
+    trend: 'stable',
+    trendNote: '조생 후지 변이종, 안정적 니치',
   },
   {
     id: 'grand-prix',
@@ -831,6 +930,8 @@ export const varieties: AppleVariety[] = [
     category: 'late',
     description: '후지를 대체할 수 있는 국산 만생종. 대과 생산이 용이하고 병해충 저항성이 우수.',
     tips: '루비에스와 함께 차세대 국산 품종으로 주목. 시험 재배 권장.',
+    marketShareKR: 0.1,
+    trend: 'stable',
   },
   {
     id: 'summer-prince',
@@ -856,6 +957,9 @@ export const varieties: AppleVariety[] = [
     category: 'early',
     description: '국산 여름사과. 쓰가루보다 착색과 식감이 개선되어 여름 사과 시장에서 경쟁력 확보.',
     tips: '조생종 특성상 빠른 출하가 핵심. 수확 후 즉시 저온저장.',
+    marketShareKR: 0.3,
+    trend: 'rising',
+    trendNote: '국산 조생종 대안으로 부상',
   },
   {
     id: 'chuseok-mi',
@@ -881,6 +985,9 @@ export const varieties: AppleVariety[] = [
     category: 'mid',
     description: '이름 그대로 추석 출하에 최적화된 품종. 대과 생산이 가능하고 착색이 우수.',
     tips: '추석 날짜에 따라 수확 적기가 달라지므로 매년 캘린더 확인.',
+    marketShareKR: 0.2,
+    trend: 'rising',
+    trendNote: '추석 명절 특화 품종',
   },
   {
     id: 'sansa-red',
@@ -906,6 +1013,8 @@ export const varieties: AppleVariety[] = [
     category: 'mid',
     description: '속까지 붉은 적육 사과. 시각적 차별화가 극대화되며 6차 산업(주스, 잼, 사이더) 연계에 최적.',
     tips: '생과 판매보다 가공품으로 차별화하면 높은 부가가치 확보.',
+    marketShareKR: 0.1,
+    trend: 'stable',
   },
   {
     id: 'changhong',
@@ -931,6 +1040,8 @@ export const varieties: AppleVariety[] = [
     category: 'late',
     description: '안정적인 국산 품종. 재배 안정성과 품질의 균형이 좋아 초보자에게 적합.',
     tips: '특별한 재배 기술 없이도 안정적인 품질. 입문 품종으로 추천.',
+    marketShareKR: 0.3,
+    trend: 'stable',
   },
 ];
 

@@ -15,66 +15,71 @@ from schemas.simulation import (
 
 PYEONG_TO_M2 = 3.3058
 
-# 품종별 시나리오 -- yield_per_10a(kg), price_per_kg(원), 등급비율
+# 농가 수취 비율 (경매가 대비): 수수료·운송·선별 비용 차감
+FARM_GATE_RATIO = 0.82
+
+# 품종별 시나리오 -- yield_per_10a(kg), price_per_kg(원=경매가), 등급비율
+# ※ 등급비율은 전국 중앙값 기준 (상위 20% 농가는 특등급 비율 더 높음)
+# ※ price_per_kg는 KAMIS 경매가 기준, 실제 농가 수취가 = × FARM_GATE_RATIO
 SCENARIOS: dict[str, dict] = {
     "후지": {
         "yield_per_10a": 2500,
         "price_per_kg": 5500,
         "grades": [
-            {"grade": AppleGrade.PREMIUM, "ratio": 0.30, "multiplier": 1.0},
-            {"grade": AppleGrade.EXCELLENT, "ratio": 0.40, "multiplier": 0.8},
-            {"grade": AppleGrade.STANDARD, "ratio": 0.20, "multiplier": 0.6},
-            {"grade": AppleGrade.SUBSTANDARD, "ratio": 0.10, "multiplier": 0.3},
+            {"grade": AppleGrade.PREMIUM, "ratio": 0.15, "multiplier": 1.0},
+            {"grade": AppleGrade.EXCELLENT, "ratio": 0.35, "multiplier": 0.8},
+            {"grade": AppleGrade.STANDARD, "ratio": 0.35, "multiplier": 0.55},
+            {"grade": AppleGrade.SUBSTANDARD, "ratio": 0.15, "multiplier": 0.25},
         ],
     },
     "홍로": {
         "yield_per_10a": 2200,
         "price_per_kg": 6000,
         "grades": [
-            {"grade": AppleGrade.PREMIUM, "ratio": 0.25, "multiplier": 1.0},
-            {"grade": AppleGrade.EXCELLENT, "ratio": 0.40, "multiplier": 0.8},
-            {"grade": AppleGrade.STANDARD, "ratio": 0.25, "multiplier": 0.6},
-            {"grade": AppleGrade.SUBSTANDARD, "ratio": 0.10, "multiplier": 0.3},
+            {"grade": AppleGrade.PREMIUM, "ratio": 0.12, "multiplier": 1.0},
+            {"grade": AppleGrade.EXCELLENT, "ratio": 0.33, "multiplier": 0.8},
+            {"grade": AppleGrade.STANDARD, "ratio": 0.35, "multiplier": 0.55},
+            {"grade": AppleGrade.SUBSTANDARD, "ratio": 0.20, "multiplier": 0.25},
         ],
     },
     "감홍": {
         "yield_per_10a": 1800,
         "price_per_kg": 8000,
         "grades": [
-            {"grade": AppleGrade.PREMIUM, "ratio": 0.20, "multiplier": 1.0},
-            {"grade": AppleGrade.EXCELLENT, "ratio": 0.35, "multiplier": 0.8},
-            {"grade": AppleGrade.STANDARD, "ratio": 0.30, "multiplier": 0.6},
-            {"grade": AppleGrade.SUBSTANDARD, "ratio": 0.15, "multiplier": 0.3},
+            {"grade": AppleGrade.PREMIUM, "ratio": 0.10, "multiplier": 1.0},
+            {"grade": AppleGrade.EXCELLENT, "ratio": 0.30, "multiplier": 0.8},
+            {"grade": AppleGrade.STANDARD, "ratio": 0.35, "multiplier": 0.55},
+            {"grade": AppleGrade.SUBSTANDARD, "ratio": 0.25, "multiplier": 0.25},
         ],
     },
     "아리수": {
         "yield_per_10a": 2300,
         "price_per_kg": 5000,
         "grades": [
-            {"grade": AppleGrade.PREMIUM, "ratio": 0.30, "multiplier": 1.0},
-            {"grade": AppleGrade.EXCELLENT, "ratio": 0.40, "multiplier": 0.8},
-            {"grade": AppleGrade.STANDARD, "ratio": 0.20, "multiplier": 0.6},
-            {"grade": AppleGrade.SUBSTANDARD, "ratio": 0.10, "multiplier": 0.3},
+            {"grade": AppleGrade.PREMIUM, "ratio": 0.15, "multiplier": 1.0},
+            {"grade": AppleGrade.EXCELLENT, "ratio": 0.35, "multiplier": 0.8},
+            {"grade": AppleGrade.STANDARD, "ratio": 0.35, "multiplier": 0.55},
+            {"grade": AppleGrade.SUBSTANDARD, "ratio": 0.15, "multiplier": 0.25},
         ],
     },
     "시나노골드": {
         "yield_per_10a": 2000,
         "price_per_kg": 6500,
         "grades": [
-            {"grade": AppleGrade.PREMIUM, "ratio": 0.25, "multiplier": 1.0},
-            {"grade": AppleGrade.EXCELLENT, "ratio": 0.40, "multiplier": 0.8},
-            {"grade": AppleGrade.STANDARD, "ratio": 0.25, "multiplier": 0.6},
-            {"grade": AppleGrade.SUBSTANDARD, "ratio": 0.10, "multiplier": 0.3},
+            {"grade": AppleGrade.PREMIUM, "ratio": 0.12, "multiplier": 1.0},
+            {"grade": AppleGrade.EXCELLENT, "ratio": 0.33, "multiplier": 0.8},
+            {"grade": AppleGrade.STANDARD, "ratio": 0.35, "multiplier": 0.55},
+            {"grade": AppleGrade.SUBSTANDARD, "ratio": 0.20, "multiplier": 0.25},
         ],
     },
     "루비에스": {
         "yield_per_10a": 2000,
         "price_per_kg": 7000,
         "grades": [
-            {"grade": AppleGrade.PREMIUM, "ratio": 0.25, "multiplier": 1.0},
-            {"grade": AppleGrade.EXCELLENT, "ratio": 0.35, "multiplier": 0.8},
-            {"grade": AppleGrade.STANDARD, "ratio": 0.25, "multiplier": 0.6},
-            {"grade": AppleGrade.SUBSTANDARD, "ratio": 0.15, "multiplier": 0.3},
+            {"grade": AppleGrade.PREMIUM, "ratio": 0.10, "multiplier": 1.0},
+            {"grade": AppleGrade.EXCELLENT, "ratio": 0.30, "multiplier": 0.8},
+            {"grade": AppleGrade.STANDARD, "ratio": 0.35, "multiplier": 0.55},
+            {"grade": AppleGrade.SUBSTANDARD, "ratio": 0.25, "multiplier": 0.25},
         ],
     },
 }
@@ -97,6 +102,10 @@ COST_ITEMS: list[dict] = [
     {"category": CostCategory.FIXED, "name": "지주·시설", "amount": 100_000},
     {"category": CostCategory.FIXED, "name": "유류·전기료", "amount": 120_000},
     {"category": CostCategory.FIXED, "name": "농작물재해보험", "amount": 80_000},
+    # 숨은 비용 (기존 추정에서 누락되었던 항목)
+    {"category": CostCategory.MATERIALS, "name": "전정 잔가지 처리", "amount": 40_000},
+    {"category": CostCategory.FIXED, "name": "농기계 수리·정비", "amount": 100_000},
+    {"category": CostCategory.FIXED, "name": "GAP인증·행정비용", "amount": 50_000},
 ]
 
 # 연차별 수확 비율 (유목 -> 성목)
@@ -143,12 +152,12 @@ def simulate(req: SimulationRequest) -> SimulationResponse:
             price_multiplier=g["multiplier"],
         ))
 
-    # 연간 매출 (성목 기준)
+    # 연간 매출 (성목 기준, 농가 수취가 적용)
     total_yield = yield_per_10a * area_10a
     weighted_price = sum(
         g["ratio"] * g["multiplier"] * price_per_kg
         for g in scenario["grades"]
-    )
+    ) * FARM_GATE_RATIO  # 경매가 → 농가 수취가
     annual_revenue = int(total_yield * weighted_price)
 
     # 연간 비용
@@ -168,8 +177,8 @@ def simulate(req: SimulationRequest) -> SimulationResponse:
     # 나무 수 추정 (간격 5m x 3m 기준, 유효면적 85%)
     total_trees = req.total_trees or int(area_m2 * 0.85 / (5.0 * 3.0))
 
-    # 초기 투자비 (묘목 + 지주 + 관수시설)
-    initial_investment = int(total_trees * 15_000 + area_10a * 500_000)
+    # 초기 투자비 (묘목 + 지주 + 관수시설 + 토양개량 + 배수공사)
+    initial_investment = int(total_trees * 15_000 + area_10a * 1_200_000)
 
     # 연도별 추이
     projections: list[YearlyProjection] = []
@@ -181,8 +190,9 @@ def simulate(req: SimulationRequest) -> SimulationResponse:
         year_yield = total_yield * ratio
         year_revenue = int(year_yield * weighted_price)
 
-        # 유목기에는 비용도 낮음 (노동비 절감)
-        cost_ratio = 0.5 + 0.5 * min(ratio + 0.3, 1.0)
+        # 유목기에도 비용 대부분 발생 (토지·농약·관리는 동일)
+        # 수확량 0%일 때도 70%, 성목 100%일 때 100%
+        cost_ratio = 0.70 + 0.30 * min(ratio, 1.0)
         year_cost = int(annual_cost * cost_ratio)
         year_profit = year_revenue - year_cost
         cumulative_profit += year_profit

@@ -7,6 +7,7 @@ import Link from 'next/link';
 import { varieties } from '@/data/varieties';
 import { useSimulationApi } from '@/lib/hooks/useSimulationApi';
 import dynamic from 'next/dynamic';
+import DataSources, { SOURCES } from '@/components/ui/DataSources';
 
 const SimulationChart = dynamic(() => import('@/components/revenue/SimulationChart'), { ssr: false });
 
@@ -675,6 +676,12 @@ function SimulationContent() {
               </p>
             </>
           )}
+
+          <DataSources
+            sources={[SOURCES.EPIS, SOURCES.KAMIS, SOURCES.KOSIS, SOURCES.RDA]}
+            updatedAt="2024년"
+            note="비용은 농촌진흥청 경영비 기준, 경매가는 KAMIS 기준. 농가수취가 = 경매가 × 82%."
+          />
         </div>
       </div>
     </div>
