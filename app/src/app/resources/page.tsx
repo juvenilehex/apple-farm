@@ -1,18 +1,34 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, Suspense } from 'react';
+import { useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import {
   subsidyPrograms, govOrganizations, trainingPrograms, onlineTools,
   type SubsidyProgram, type GovOrganization,
 } from '@/data/resources';
+import {
+  contactCategories, getContactsForMonth, getContactsForCategory,
+} from '@/data/contacts';
+import { appleRegions } from '@/data/regions';
 
-type Tab = 'subsidies' | 'insurance' | 'organizations' | 'training' | 'tools';
+type Tab = 'subsidies' | 'insurance' | 'organizations' | 'training' | 'tools' | 'contacts';
 
 export default function ResourcesPage() {
-  const [tab, setTab] = useState<Tab>('subsidies');
+  return (
+    <Suspense>
+      <ResourcesContent />
+    </Suspense>
+  );
+}
+
+function ResourcesContent() {
+  const searchParams = useSearchParams();
+  const initialTab = (searchParams.get('tab') as Tab) || 'subsidies';
+  const [tab, setTab] = useState<Tab>(initialTab);
   const [subsidyFilter, setSubsidyFilter] = useState<string>('all');
   const [trainingFilter, setTrainingFilter] = useState<string>('all');
+  const [selectedRegion, setSelectedRegion] = useState(appleRegions[0].id);
 
   const tabs: { key: Tab; label: string }[] = [
     { key: 'subsidies', label: '보조금·지원' },
@@ -20,6 +36,7 @@ export default function ResourcesPage() {
     { key: 'organizations', label: '정부 기관' },
     { key: 'training', label: '교육·자격' },
     { key: 'tools', label: '온라인 도구' },
+    { key: 'contacts', label: '연락처' },
   ];
 
   const subsidyList = subsidyFilter === 'all'
@@ -56,7 +73,7 @@ export default function ResourcesPage() {
             className="flex-shrink-0 rounded-lg px-4 py-2 font-medium transition-all duration-150"
             style={{
               fontSize: 'var(--fs-sm)',
-              background: tab === t.key ? 'white' : 'transparent',
+              background: tab === t.key ? 'var(--surface-primary)' : 'transparent',
               color: tab === t.key ? 'var(--text-primary)' : 'var(--text-muted)',
               boxShadow: tab === t.key ? 'var(--shadow-1)' : 'none',
             }}
@@ -84,7 +101,7 @@ export default function ResourcesPage() {
                 style={{
                   fontSize: 'var(--fs-sm)',
                   borderColor: subsidyFilter === f.value ? 'var(--brand)' : 'var(--border-default)',
-                  background: subsidyFilter === f.value ? 'var(--brand)' : 'white',
+                  background: subsidyFilter === f.value ? 'var(--brand)' : 'var(--surface-primary)',
                   color: subsidyFilter === f.value ? 'white' : 'var(--text-secondary)',
                 }}>
                 {f.label}
@@ -212,7 +229,7 @@ export default function ResourcesPage() {
                 style={{
                   fontSize: 'var(--fs-sm)',
                   borderColor: trainingFilter === f.value ? 'var(--brand)' : 'var(--border-default)',
-                  background: trainingFilter === f.value ? 'var(--brand)' : 'white',
+                  background: trainingFilter === f.value ? 'var(--brand)' : 'var(--surface-primary)',
                   color: trainingFilter === f.value ? 'white' : 'var(--text-secondary)',
                 }}>
                 {f.label}
@@ -299,6 +316,129 @@ export default function ResourcesPage() {
                 </div>
               </div>
             ))}
+          </div>
+        </div>
+      )}
+
+      {/* ── 연락처 ── */}
+      {tab === 'contacts' && (
+        <div className="space-y-4">
+          {/* 지역 선택 */}
+          <div className="flex items-center gap-3">
+            <label className="font-medium flex-shrink-0" style={{ fontSize: 'var(--fs-sm)', color: 'var(--text-primary)' }}>
+              지역 선택
+            </label>
+            <select
+              value={selectedRegion}
+              onChange={(e) => setSelectedRegion(e.target.value)}
+              className="flex-1 rounded-lg border px-3 py-2"
+              style={{ fontSize: 'var(--fs-base)', borderColor: 'var(--border-default)', background: 'var(--surface-primary)', color: 'var(--text-primary)' }}
+            >
+              {appleRegions.map((r) => (
+                <option key={r.id} value={r.id}>{r.name} ({r.province})</option>
+              ))}
+            </select>
+          </div>
+
+          {/* 이달 연락할 곳 하이라이트 */}
+          {(() => {
+            const currentMonth = new Date().getMonth() + 1;
+            const peakCategories = getContactsForMonth(currentMonth);
+            if (peakCategories.length === 0) return null;
+            return (
+              <div className="rounded-xl border p-4" style={{ borderColor: 'var(--status-warning)', background: 'var(--status-warning-bg)' }}>
+                <p className="font-semibold mb-2" style={{ fontSize: 'var(--fs-base)', color: 'var(--status-warning)' }}>
+                  {currentMonth}월 — 지금 연락이 필요한 곳
+                </p>
+                <div className="flex flex-wrap gap-2">
+                  {peakCategories.map((c) => (
+                    <span key={c.id} className="rounded-lg px-3 py-1.5 font-medium" style={{ fontSize: 'var(--fs-sm)', background: 'rgba(168, 136, 96, 0.15)', color: 'var(--status-warning)' }}>
+                      {c.icon} {c.name}
+                    </span>
+                  ))}
+                </div>
+              </div>
+            );
+          })()}
+
+          {/* 카테고리별 카드 그리드 */}
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+            {contactCategories.map((cat) => {
+              const contacts = getContactsForCategory(cat.id, selectedRegion);
+              const currentMonth = new Date().getMonth() + 1;
+              const isPeak = cat.peakMonths.includes(currentMonth);
+              return (
+                <div key={cat.id} className="rounded-xl border bg-[var(--surface-primary)] p-5" style={{ borderColor: isPeak ? 'var(--status-warning)' : 'var(--border-default)', boxShadow: 'var(--shadow-1)' }}>
+                  <div className="flex items-center gap-2 mb-2">
+                    <span style={{ fontSize: 'var(--fs-xl)' }}>{cat.icon}</span>
+                    <h3 className="font-semibold" style={{ fontSize: 'var(--fs-base)', color: 'var(--text-primary)' }}>
+                      {cat.name}
+                    </h3>
+                    {isPeak && (
+                      <span className="rounded-md px-2 py-0.5 font-medium" style={{ fontSize: 'var(--fs-xs)', background: 'var(--status-warning-bg)', color: 'var(--status-warning)' }}>
+                        이달 수요 높음
+                      </span>
+                    )}
+                  </div>
+                  <p className="mb-3" style={{ fontSize: 'var(--fs-sm)', color: 'var(--text-secondary)' }}>
+                    {cat.description}
+                  </p>
+
+                  {/* 언제 연락? */}
+                  <div className="mb-3">
+                    <p className="font-medium mb-1" style={{ fontSize: 'var(--fs-xs)', color: 'var(--text-muted)' }}>언제 연락하나요?</p>
+                    {cat.whenToContact.map((w, i) => (
+                      <p key={i} style={{ fontSize: 'var(--fs-xs)', color: 'var(--text-tertiary)' }}>• {w}</p>
+                    ))}
+                  </div>
+
+                  {/* 피크 월 배지 */}
+                  {cat.peakMonths.length > 0 && (
+                    <div className="flex flex-wrap gap-1 mb-3">
+                      {cat.peakMonths.map((m) => (
+                        <span key={m} className="rounded-md px-2 py-0.5" style={{
+                          fontSize: 'var(--fs-xs)',
+                          background: m === currentMonth ? 'var(--status-warning-bg)' : 'var(--surface-tertiary)',
+                          color: m === currentMonth ? 'var(--status-warning)' : 'var(--text-muted)',
+                        }}>
+                          {m}월
+                        </span>
+                      ))}
+                    </div>
+                  )}
+
+                  {/* 연락처 목록 */}
+                  {contacts.length > 0 ? (
+                    <div className="space-y-1.5">
+                      {contacts.map((c, i) => (
+                        <div key={i} className="flex items-center justify-between rounded-lg p-2.5" style={{ background: 'var(--surface-tertiary)' }}>
+                          <div>
+                            <p className="font-medium" style={{ fontSize: 'var(--fs-sm)', color: 'var(--text-primary)' }}>{c.name}</p>
+                            {c.notes && <p style={{ fontSize: 'var(--fs-xs)', color: 'var(--text-muted)' }}>{c.notes}</p>}
+                          </div>
+                          <a href={`tel:${c.phone}`} className="flex-shrink-0 rounded-lg px-3 py-1.5 font-semibold" style={{ fontSize: 'var(--fs-sm)', background: 'var(--brand)', color: 'white' }}>
+                            {c.phone}
+                          </a>
+                        </div>
+                      ))}
+                    </div>
+                  ) : (
+                    <div className="rounded-lg p-3" style={{ background: 'var(--surface-tertiary)' }}>
+                      <p style={{ fontSize: 'var(--fs-sm)', color: 'var(--text-muted)' }}>
+                        준비 중 — 지역 농업기술센터에 문의하세요
+                      </p>
+                    </div>
+                  )}
+                </div>
+              );
+            })}
+          </div>
+
+          {/* 하단 안내 */}
+          <div className="rounded-xl border p-4 text-center" style={{ borderColor: 'var(--border-default)', background: 'var(--surface-tertiary)' }}>
+            <p style={{ fontSize: 'var(--fs-sm)', color: 'var(--text-muted)' }}>
+              연락처 정보는 지속적으로 업데이트됩니다. 잘못된 정보가 있다면 알려주세요.
+            </p>
           </div>
         </div>
       )}

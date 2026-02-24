@@ -58,6 +58,11 @@ export default function RootLayout({
               <div className="mx-auto max-w-[1200px] px-4 py-6 sm:px-6 lg:px-8 lg:py-8">
                 {children}
               </div>
+              <footer style={{textAlign: "center", padding: "24px 0 8px", borderTop: "1px solid #eee"}}>
+                <p style={{fontSize: "11px", color: "#999", margin: 0}}>
+                  데이터 출처: 기상청 Open-API · 농산물유통정보서비스(KAMIS)
+                </p>
+              </footer>
             </main>
           </ToastProvider>
         </AnalyticsProvider>

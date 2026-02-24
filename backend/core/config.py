@@ -12,6 +12,8 @@ class Settings(BaseSettings):
     kamis_api_id: str = ""
     # 브이월드 API
     vworld_api_key: str = ""
+    # KOSIS 통계청 API
+    kosis_api_key: str = ""
 
     model_config = {"env_file": ".env"}
 

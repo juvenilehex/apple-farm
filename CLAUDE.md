@@ -59,14 +59,14 @@ pj18_apple/
 │   └── src/
 │       ├── app/           # 페이지 라우트 (13개)
 │       ├── components/    # 공유 컴포넌트
-│       └── data/          # 데이터 파일 (10개)
+│       └── data/          # 데이터 파일 (11개, orchard-specs.ts 추가)
 └── backend/               # Python FastAPI 백엔드
     ├── main.py            # FastAPI 엔트리포인트
     ├── requirements.txt   # Python 의존성
     ├── api/               # API 라우터 (7개)
     │   ├── weather.py     # 기상청 API (mock 폴백)
     │   ├── price.py       # KAMIS 경매가 (mock 폴백)
-    │   ├── land.py        # 브이월드 지적도
+    │   ├── land.py        # 브이월드 지적도 + GET /parcel (지번 경계)
     │   ├── statistics.py  # 생산통계/벤치마크
     │   ├── orchard.py     # POST /api/orchard/design
     │   ├── simulation.py  # POST /api/simulation/run
@@ -108,12 +108,12 @@ pj18_apple/
 
 | 렌즈 | 점수 | 핵심 |
 |------|------|------|
-| 워크플로우 | 4/5 🟢 | 밭설계→시뮬레이션→3시나리오 비교→추천 워크플로우 완성 (2026.02.24) |
-| 품질루프 | 4/5 🟢 | 가정 투명화 + 검증기 + 피드백 + 데이터 품질 스코어링 (2026.02.24) |
+| 워크플로우 | 4.5/5 🟢 | 품종+대목+장비+이격 4단계 설계 + 지번 자동 경계 (2026.02.25) |
+| 품질루프 | 4/5 🟢 | 가정 투명화 + 검증기 + 피드백 + 출처 명시 데이터 (2026.02.25) |
 | 진화 | 5/5 🟢 | 자가진화엔진 + A/B실험 + 마이그레이션 + 피처플래그 + 버전관리 (2026.02.24) |
-| 지식구조 | 4/5 ⚠️ | 공공데이터 7개 API + Enum 중앙화 (2026.02.23) |
-| 자율성 | 3/5 🟡 | Lv3, 자동 갱신 + 적응형 스케줄러 + 이상감지 + 헬스모니터 (2026.02.24) |
-| 학습순환 | 4/5 🟢 | Clarity + Analytics + 피드백→개선 파이프라인 + 사용패턴 분석 (2026.02.24) |
+| 지식구조 | 4.5/5 🟢 | 공공데이터 API + Enum + 도메인 지식 구조화(장비/관수/대목/이격) (2026.02.25) |
+| 자율성 | 3.5/5 🟡 | 자동갱신 + 적응형스케줄러 + 이상감지 + 지번자동로딩 + 연쇄자동조정 (2026.02.25) |
+| 학습순환 | 4/5 🟢 | Clarity + Analytics + 피드백→개선 파이프라인 + 전문가 정보 노출 (2026.02.25) |
 
 **✅ Clarity 추가 (2026.02.22)**: layout.tsx에 Microsoft Clarity 삽입, NEXT_PUBLIC_CLARITY_ID 환경변수
 **✅ Enum 중앙화 (2026.02.23)**: `backend/core/enums.py` — CostCategory, AppleGrade, VarietyCategory
@@ -122,7 +122,8 @@ pj18_apple/
 **✅ 공공데이터 자동 갱신 (2026.02.24)**: `services/data_refresher.py` — 기상청 3h + KAMIS 6h 자동 갱신, JSONL 로그, lifespan 스케줄러 + CLI
 **✅ 자가진화 v1 (2026.02.24)**: 6개 렌즈 전체 개선 — 피처플래그, 이상감지, 3시나리오 비교, 데이터품질, 사용패턴 분석
 **✅ 자가진화 v2 (2026.02.24)**: 진화 렌즈 5/5 — 자가튜닝엔진(evolution_engine), A/B실험(experiment), 스키마마이그레이션(migration_manager)
-**최우선 과제**: 실제 농가 데이터와 시뮬레이션 교차 검증 (KAMIS API 연동)
+**✅ 설계 딥다이브 (2026.02.25)**: 대목4종+장비4종+이격규정+관수시설 스펙, 지번 자동 경계(GET /api/land/parcel), 설계 UI 4단계 확장
+**최우선 과제**: 백엔드 orchard API에 rootstockId 파라미터 반영 + 설계→시뮬레이션 자동 전달
 **Phase 2 준비**: Clarity 데이터 분석 → 60대 타겟 UI 어디서 막히는지 추적
 
 ---
@@ -162,3 +163,9 @@ python -m services.data_refresher --prices    # 가격만
 - **API 키 미설정 시**: 조용히 스킵 (mock 데이터 없이 빈 결과)
 - **의존성 0**: asyncio 기반, 외부 스케줄러 라이브러리 불필요
 - **lifespan 통합**: FastAPI lifespan 에서 시작/종료 관리
+
+<!-- PJ00_SESSION_STATE_START -->
+## 세션 복원 (PJ00 자동 업데이트: 2026-02-25 04:18)
+
+최근 작업 없음. 새 작업을 시작하세요.
+<!-- PJ00_SESSION_STATE_END -->

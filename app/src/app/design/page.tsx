@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import dynamic from 'next/dynamic';
 import { varieties } from '@/data/varieties';
+import { rootstockSpecs, machineSpecs, getRootstockById, getMachineById } from '@/data/orchard-specs';
 import { useDesignApi } from '@/lib/hooks/useDesignApi';
 import DataSources, { SOURCES } from '@/components/ui/DataSources';
 
@@ -11,10 +12,14 @@ const FarmMap = dynamic(() => import('@/components/farm-design/FarmMap'), { ssr:
 
 export interface DesignConfig {
   varietyId: string;
+  rootstockId: string;
   rowSpacing: number;
   treeSpacing: number;
   rowAngle: number;
   roadWidth: number;
+  machineId: string;
+  setbackEnabled: boolean;
+  setbackDistance: number;
 }
 
 export interface DesignResult {
@@ -29,10 +34,14 @@ export interface DesignResult {
 
 const defaultConfig: DesignConfig = {
   varietyId: 'fuji',
+  rootstockId: 'M26',
   rowSpacing: 5,
   treeSpacing: 4,
   rowAngle: 0,
   roadWidth: 3,
+  machineId: 'ss',
+  setbackEnabled: true,
+  setbackDistance: 1.0,
 };
 
 interface SavedDesign {
@@ -107,17 +116,58 @@ export default function DesignPage() {
     spacingTree: config.treeSpacing,
   });
 
+  const getSpacingForCombo = (variety: typeof selectedVariety, rsId: string) => {
+    if (!variety) return null;
+    const match = variety.rootstockSpacing?.find((r) => r.rootstockId === rsId);
+    if (match) return { row: match.rowSpacing, tree: match.treeSpacing };
+    const rs = getRootstockById(rsId);
+    if (rs) return { row: rs.rowSpacing.rec, tree: rs.treeSpacing.rec };
+    return { row: variety.spacing.row, tree: variety.spacing.tree };
+  };
+
   const handleVarietyChange = (id: string) => {
     const v = varieties.find((x) => x.id === id);
     if (v) {
+      const sp = getSpacingForCombo(v, config.rootstockId) || v.spacing;
       setConfig((prev) => ({
         ...prev,
         varietyId: id,
-        rowSpacing: v.spacing.row,
-        treeSpacing: v.spacing.tree,
+        rowSpacing: sp.row,
+        treeSpacing: sp.tree,
       }));
     }
   };
+
+  const handleRootstockChange = (rsId: string) => {
+    const v = varieties.find((x) => x.id === config.varietyId);
+    const sp = getSpacingForCombo(v, rsId);
+    const machine = getMachineById(config.machineId);
+    const minRow = machine ? machine.minPassWidth : 2;
+    setConfig((prev) => ({
+      ...prev,
+      rootstockId: rsId,
+      rowSpacing: sp ? Math.max(sp.row, minRow) : prev.rowSpacing,
+      treeSpacing: sp ? sp.tree : prev.treeSpacing,
+    }));
+  };
+
+  const handleMachineChange = (mId: string) => {
+    const machine = getMachineById(mId);
+    setConfig((prev) => ({
+      ...prev,
+      machineId: mId,
+      roadWidth: machine ? Math.max(prev.roadWidth, machine.minPassWidth) : prev.roadWidth,
+      rowSpacing: machine ? Math.max(prev.rowSpacing, machine.minPassWidth) : prev.rowSpacing,
+    }));
+  };
+
+  const selectedRootstock = getRootstockById(config.rootstockId);
+  const selectedMachine = getMachineById(config.machineId);
+  const machineWarning = selectedMachine && config.rowSpacing < selectedMachine.minPassWidth;
+  const rsRowMin = selectedRootstock?.rowSpacing.min ?? 2;
+  const rsRowMax = selectedRootstock?.rowSpacing.max ?? 8;
+  const rsTreeMin = selectedRootstock?.treeSpacing.min ?? 1;
+  const rsTreeMax = selectedRootstock?.treeSpacing.max ?? 6;
 
   return (
     <div className="space-y-6">
@@ -153,26 +203,74 @@ export default function DesignPage() {
             </label>
 
             <label className="block mb-4">
+              <span className="block mb-1 font-medium" style={{ fontSize: 'var(--fs-sm)', color: 'var(--text-secondary)' }}>대목 선택</span>
+              <select
+                value={config.rootstockId}
+                onChange={(e) => handleRootstockChange(e.target.value)}
+                className="w-full px-3 py-2.5 rounded-lg border focus:outline-none focus:ring-2"
+                style={{ fontSize: 'var(--fs-base)', borderColor: 'var(--border-default)', background: 'var(--surface-tertiary)', color: 'var(--text-primary)', '--tw-ring-color': 'var(--accent)' } as React.CSSProperties}
+              >
+                {rootstockSpecs.map((rs) => (
+                  <option key={rs.id} value={rs.id}>
+                    {rs.name} ({rs.type}, 높이 ~{rs.maxHeight}m)
+                  </option>
+                ))}
+              </select>
+              {selectedRootstock && (
+                <p className="mt-1" style={{ fontSize: 'var(--fs-xs)', color: 'var(--text-muted)' }}>
+                  수관폭 {selectedRootstock.canopyWidth}m · 권장 열간 {selectedRootstock.rowSpacing.rec}m · 주간 {selectedRootstock.treeSpacing.rec}m
+                </p>
+              )}
+            </label>
+
+            <label className="block mb-4">
+              <span className="block mb-1 font-medium" style={{ fontSize: 'var(--fs-sm)', color: 'var(--text-secondary)' }}>작업 차량</span>
+              <select
+                value={config.machineId}
+                onChange={(e) => handleMachineChange(e.target.value)}
+                className="w-full px-3 py-2.5 rounded-lg border focus:outline-none focus:ring-2"
+                style={{ fontSize: 'var(--fs-base)', borderColor: 'var(--border-default)', background: 'var(--surface-tertiary)', color: 'var(--text-primary)', '--tw-ring-color': 'var(--accent)' } as React.CSSProperties}
+              >
+                {machineSpecs.map((m) => (
+                  <option key={m.id} value={m.id}>
+                    {m.name} (통행 {m.minPassWidth}m)
+                  </option>
+                ))}
+              </select>
+              {machineWarning && (
+                <p className="mt-1 font-medium" style={{ fontSize: 'var(--fs-xs)', color: 'var(--status-danger)' }}>
+                  {selectedMachine!.name} 통행에 최소 열간 {selectedMachine!.minPassWidth}m 필요
+                </p>
+              )}
+            </label>
+
+            <label className="block mb-4">
               <span className="block mb-1 font-medium" style={{ fontSize: 'var(--fs-sm)', color: 'var(--text-secondary)' }}>
                 열간 거리: <strong style={{ color: 'var(--text-primary)' }}>{config.rowSpacing}m</strong>
+                {selectedRootstock && (
+                  <span style={{ fontSize: 'var(--fs-xs)', color: 'var(--accent)' }}> (권장 {rsRowMin}~{rsRowMax}m)</span>
+                )}
               </span>
-              <input type="range" min={2} max={8} step={0.5} value={config.rowSpacing}
+              <input type="range" min={rsRowMin} max={rsRowMax} step={0.25} value={config.rowSpacing}
                 onChange={(e) => setConfig({ ...config, rowSpacing: parseFloat(e.target.value) })}
                 className="w-full" style={{ accentColor: 'var(--brand)' }} />
               <div className="flex justify-between" style={{ fontSize: 'var(--fs-xs)', color: 'var(--text-muted)' }}>
-                <span>2m (밀식)</span><span>8m (일반)</span>
+                <span>{rsRowMin}m (밀식)</span><span>{rsRowMax}m (일반)</span>
               </div>
             </label>
 
             <label className="block mb-4">
               <span className="block mb-1 font-medium" style={{ fontSize: 'var(--fs-sm)', color: 'var(--text-secondary)' }}>
                 주간 거리: <strong style={{ color: 'var(--text-primary)' }}>{config.treeSpacing}m</strong>
+                {selectedRootstock && (
+                  <span style={{ fontSize: 'var(--fs-xs)', color: 'var(--accent)' }}> (권장 {rsTreeMin}~{rsTreeMax}m)</span>
+                )}
               </span>
-              <input type="range" min={1} max={6} step={0.5} value={config.treeSpacing}
+              <input type="range" min={rsTreeMin} max={rsTreeMax} step={0.25} value={config.treeSpacing}
                 onChange={(e) => setConfig({ ...config, treeSpacing: parseFloat(e.target.value) })}
                 className="w-full" style={{ accentColor: 'var(--brand)' }} />
               <div className="flex justify-between" style={{ fontSize: 'var(--fs-xs)', color: 'var(--text-muted)' }}>
-                <span>1m (초밀식)</span><span>6m (일반)</span>
+                <span>{rsTreeMin}m (밀식)</span><span>{rsTreeMax}m (일반)</span>
               </div>
             </label>
 
@@ -203,15 +301,55 @@ export default function DesignPage() {
               </div>
             </label>
 
-            {selectedVariety && (
-              <div className="rounded-lg p-3" style={{ background: 'var(--brand-subtle)' }}>
-                <p className="font-semibold mb-1" style={{ fontSize: 'var(--fs-sm)', color: 'var(--brand-text)' }}>
-                  {selectedVariety.name} 권장 간격
-                </p>
-                <p style={{ fontSize: 'var(--fs-sm)', color: 'var(--text-secondary)' }}>
-                  열간 {selectedVariety.spacing.row}m × 주간 {selectedVariety.spacing.tree}m
-                </p>
+            <div className="mb-4">
+              <div className="flex items-center justify-between mb-2">
+                <span className="font-medium" style={{ fontSize: 'var(--fs-sm)', color: 'var(--text-secondary)' }}>
+                  경계 이격 (민법 242조)
+                </span>
+                <button
+                  onClick={() => setConfig((prev) => ({ ...prev, setbackEnabled: !prev.setbackEnabled }))}
+                  className="rounded-full px-3 py-1 text-xs font-medium transition-colors"
+                  style={{
+                    background: config.setbackEnabled ? 'var(--accent)' : 'var(--surface-tertiary)',
+                    color: config.setbackEnabled ? 'white' : 'var(--text-muted)',
+                  }}
+                >
+                  {config.setbackEnabled ? 'ON' : 'OFF'}
+                </button>
               </div>
+              {config.setbackEnabled && (
+                <>
+                  <input type="range" min={0.5} max={2.0} step={0.1} value={config.setbackDistance}
+                    onChange={(e) => setConfig({ ...config, setbackDistance: parseFloat(e.target.value) })}
+                    className="w-full" style={{ accentColor: 'var(--status-warning)' }} />
+                  <div className="flex justify-between" style={{ fontSize: 'var(--fs-xs)', color: 'var(--text-muted)' }}>
+                    <span>0.5m</span>
+                    <span className="font-medium" style={{ color: 'var(--text-primary)' }}>{config.setbackDistance}m</span>
+                    <span>2.0m</span>
+                  </div>
+                  <p className="mt-1" style={{ fontSize: 'var(--fs-xs)', color: 'var(--text-muted)' }}>
+                    수목(2m이상) 경계선에서 1m 이격 의무 (민법 242조)
+                  </p>
+                </>
+              )}
+            </div>
+
+            {selectedVariety && selectedRootstock && (
+              <details className="rounded-lg p-3" style={{ background: 'var(--brand-subtle)' }}>
+                <summary className="cursor-pointer font-semibold" style={{ fontSize: 'var(--fs-sm)', color: 'var(--brand-text)' }}>
+                  전문가 정보
+                </summary>
+                <div className="mt-2 space-y-1" style={{ fontSize: 'var(--fs-xs)', color: 'var(--text-secondary)' }}>
+                  <p>성목 높이: ~{selectedRootstock.maxHeight}m · 수관폭: ~{selectedRootstock.canopyWidth}m</p>
+                  <p>열간 {config.rowSpacing}m − 수관폭 {selectedRootstock.canopyWidth}m = 통행 여유 {(config.rowSpacing - selectedRootstock.canopyWidth).toFixed(1)}m</p>
+                  {selectedMachine && (
+                    <p>{selectedMachine.name}: 차폭 {selectedMachine.width}m, 필요 통행폭 {selectedMachine.minPassWidth}m, 회전반경 {selectedMachine.turningRadius}m</p>
+                  )}
+                  <p className="mt-1 italic" style={{ color: 'var(--text-muted)' }}>
+                    출처: {selectedRootstock.source}
+                  </p>
+                </div>
+              </details>
             )}
           </div>
 
@@ -312,10 +450,22 @@ export default function DesignPage() {
             </div>
           )}
 
-          <Link href="/simulation" className="block rounded-xl border bg-[var(--surface-primary)] p-4 transition-all duration-150 hover:border-[var(--border-strong)]"
+          <Link
+            href={(() => {
+              const params = new URLSearchParams();
+              params.set('variety', config.varietyId);
+              params.set('area', String(config.areaPyeong));
+              if (result) params.set('trees', String(result.treeCount));
+              else if (backendEstimate) params.set('trees', String(backendEstimate.total_trees));
+              if (backendEstimate?.estimated_yield_kg) params.set('yield_kg', String(backendEstimate.estimated_yield_kg));
+              return `/simulation?${params.toString()}`;
+            })()}
+            className="block rounded-xl border bg-[var(--surface-primary)] p-4 transition-all duration-150 hover:border-[var(--border-strong)]"
             style={{ borderColor: 'var(--border-default)', boxShadow: 'var(--shadow-1)' }}>
             <p className="font-semibold" style={{ fontSize: 'var(--fs-sm)', color: 'var(--text-primary)' }}>설계 결과로 수익 시뮬레이션 →</p>
-            <p style={{ fontSize: 'var(--fs-xs)', color: 'var(--text-tertiary)' }}>면적·나무수 기반 수익 예측</p>
+            <p style={{ fontSize: 'var(--fs-xs)', color: 'var(--text-tertiary)' }}>
+              {result ? `${result.treeCount}주 · ${config.areaPyeong}평 자동 반영` : '면적·나무수 기반 수익 예측'}
+            </p>
           </Link>
 
           {result && polygonCoords && (

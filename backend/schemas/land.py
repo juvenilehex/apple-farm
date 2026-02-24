@@ -17,3 +17,13 @@ class LandRequest(BaseModel):
     address: str | None = None
     lat: float | None = None
     lng: float | None = None
+
+
+class ParcelGeometry(BaseModel):
+    address: str
+    pnu: str  # 필지고유번호
+    area_m2: float
+    area_pyeong: float
+    land_category: str  # 전, 답, 과수원 등
+    coordinates: list[list[float]]  # [[lng, lat], ...] GeoJSON ring
+    source: str  # 'vworld' | 'mock'

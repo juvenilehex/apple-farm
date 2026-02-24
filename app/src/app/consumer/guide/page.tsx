@@ -51,27 +51,75 @@ export default function ConsumerGuidePage() {
         </p>
       </div>
 
-      {/* This month's recommendation */}
-      {currentBuying && (
-        <div className="rounded-xl border bg-[var(--surface-primary)] p-5" style={{ borderColor: 'var(--brand-light)', background: 'var(--brand-subtle)', boxShadow: 'var(--shadow-1)' }}>
-          <div className="flex items-center gap-2 mb-2">
-            <span className="font-bold" style={{ fontSize: 'var(--fs-lg)', color: 'var(--brand-text)' }}>{currentMonth}월 추천</span>
+      {/* 3-Card Attraction Strip */}
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+        {/* Card 1: 지금 사과 얼마? */}
+        <button
+          onClick={() => setTab('supply')}
+          className="rounded-xl border p-5 text-left transition-all hover:border-[var(--border-strong)]"
+          style={{ borderColor: 'var(--brand-light)', background: 'var(--brand-subtle)', boxShadow: 'var(--shadow-1)' }}
+        >
+          <p className="font-medium mb-1" style={{ fontSize: 'var(--fs-xs)', color: 'var(--brand-text)' }}>지금 사과 얼마?</p>
+          <p className="font-bold tabular-nums" style={{ fontSize: 'var(--fs-xl)', color: 'var(--text-primary)' }}>
+            5,500원/kg
+          </p>
+          <div className="flex items-center gap-2 mt-1">
+            <span style={{ fontSize: 'var(--fs-xs)', color: 'var(--text-muted)' }}>후지 특등급 기준</span>
             {currentSupply && (
               <span className="rounded-full px-2 py-0.5 font-medium" style={{
                 fontSize: 'var(--fs-xs)',
-                background: currentSupply.supply === 'very-high' ? 'var(--status-success-bg)' : currentSupply.supply === 'high' ? 'var(--brand-subtle)' : 'var(--status-warning-bg)',
-                color: currentSupply.supply === 'very-high' ? 'var(--status-success)' : currentSupply.supply === 'high' ? 'var(--brand-text)' : 'var(--status-warning)',
+                background: currentSupply.supply === 'very-high' ? 'var(--status-success-bg)' : currentSupply.supply === 'high' ? 'var(--brand-subtle)' : currentSupply.supply === 'medium' ? 'var(--status-warning-bg)' : 'var(--status-danger-bg)',
+                color: currentSupply.supply === 'very-high' ? 'var(--status-success)' : currentSupply.supply === 'high' ? 'var(--brand-text)' : currentSupply.supply === 'medium' ? 'var(--status-warning)' : 'var(--status-danger)',
               }}>
                 공급 {currentSupply.supply === 'very-high' ? '풍부' : currentSupply.supply === 'high' ? '많음' : currentSupply.supply === 'medium' ? '보통' : '적음'}
               </span>
             )}
           </div>
-          <p style={{ fontSize: 'var(--fs-base)', color: 'var(--text-secondary)' }}>{currentBuying.tip}</p>
-          <p className="mt-2 font-semibold" style={{ fontSize: 'var(--fs-base)', color: 'var(--brand)' }}>
-            Best Buy: {currentBuying.bestBuy}
+        </button>
+
+        {/* Card 2: 제철 사과 */}
+        <button
+          onClick={() => setTab('buying')}
+          className="rounded-xl border p-5 text-left transition-all hover:border-[var(--border-strong)]"
+          style={{ borderColor: 'var(--border-default)', background: 'var(--surface-primary)', boxShadow: 'var(--shadow-1)' }}
+        >
+          <p className="font-medium mb-1" style={{ fontSize: 'var(--fs-xs)', color: 'var(--text-muted)' }}>제철 사과</p>
+          {currentBuying && !currentBuying.bestBuy.includes('비추천') ? (
+            <>
+              <p className="font-bold" style={{ fontSize: 'var(--fs-xl)', color: 'var(--brand)' }}>
+                {currentBuying.bestBuy}
+              </p>
+              <p className="mt-1" style={{ fontSize: 'var(--fs-xs)', color: 'var(--text-tertiary)' }}>
+                {currentMonth}월 Best Buy
+              </p>
+            </>
+          ) : (
+            <>
+              <p className="font-bold" style={{ fontSize: 'var(--fs-lg)', color: 'var(--text-muted)' }}>
+                비수기예요
+              </p>
+              <p className="mt-1" style={{ fontSize: 'var(--fs-xs)', color: 'var(--text-tertiary)' }}>
+                저장 사과 또는 {currentMonth < 8 ? '8월 조생종' : '다음 시즌'} 기대!
+              </p>
+            </>
+          )}
+        </button>
+
+        {/* Card 3: 나에게 맞는 사과 */}
+        <button
+          onClick={() => setTab('recommend')}
+          className="rounded-xl border p-5 text-left transition-all hover:border-[var(--border-strong)]"
+          style={{ borderColor: 'var(--accent)', background: 'var(--accent-subtle)', boxShadow: 'var(--shadow-1)' }}
+        >
+          <p className="font-medium mb-1" style={{ fontSize: 'var(--fs-xs)', color: 'var(--accent)' }}>맛 취향 테스트</p>
+          <p className="font-bold" style={{ fontSize: 'var(--fs-lg)', color: 'var(--text-primary)' }}>
+            나에게 맞는 사과 찾기
           </p>
-        </div>
-      )}
+          <p className="mt-1" style={{ fontSize: 'var(--fs-xs)', color: 'var(--text-tertiary)' }}>
+            달콤? 새콤? 아삭? →
+          </p>
+        </button>
+      </div>
 
       {/* Tab Navigation */}
       <div className="flex gap-1 rounded-xl p-1 overflow-x-auto" style={{ background: 'var(--surface-tertiary)' }}>

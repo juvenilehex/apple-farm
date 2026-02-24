@@ -14,7 +14,7 @@ interface FarmMapProps {
   onPolygonChange: (coords: [number, number][] | null) => void;
 }
 
-type MapMode = 'idle' | 'drawing' | 'road';
+type MapMode = 'idle' | 'drawing' | 'road' | 'parcel';
 
 interface DesignCache {
   polygonCoords: [number, number][] | null;
@@ -55,6 +55,9 @@ export default function FarmMap({ config, onResult, onPolygonChange }: FarmMapPr
   // Trees
   const treeLayersRef = useRef<L.LayerGroup | null>(null);
 
+  // Setback layer
+  const setbackLayerRef = useRef<L.Polygon | null>(null);
+
   // Satellite layer
   const satelliteLayerRef = useRef<L.TileLayer | null>(null);
 
@@ -75,6 +78,9 @@ export default function FarmMap({ config, onResult, onPolygonChange }: FarmMapPr
   const [searchResults, setSearchResults] = useState<{ display_name: string; lat: string; lon: string }[]>([]);
   const [showResults, setShowResults] = useState(false);
   const searchTimeout = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  // Parcel loading
+  const [parcelLoading, setParcelLoading] = useState(false);
 
   // Track init done to prevent double-restore
   const initDone = useRef(false);
@@ -384,12 +390,38 @@ export default function FarmMap({ config, onResult, onPolygonChange }: FarmMapPr
     const areaM2 = Math.round(turf.area(farmPolygon));
     const areaPyeong = Math.round(areaM2 * 0.3025);
 
+    // Setback buffer: use config distance or fallback 2m
+    const setbackKm = config.setbackEnabled
+      ? -(config.setbackDistance / 1000)
+      : -0.002;
+
     let plantArea: GeoJSON.Feature<GeoJSON.Polygon | GeoJSON.MultiPolygon>;
     try {
-      const buffered = turf.buffer(farmPolygon, -0.002, { units: 'kilometers' });
+      const buffered = turf.buffer(farmPolygon, setbackKm, { units: 'kilometers' });
       plantArea = (buffered || farmPolygon) as GeoJSON.Feature<GeoJSON.Polygon | GeoJSON.MultiPolygon>;
     } catch {
       plantArea = farmPolygon as GeoJSON.Feature<GeoJSON.Polygon | GeoJSON.MultiPolygon>;
+    }
+
+    // Render setback zone visualization
+    if (setbackLayerRef.current) {
+      setbackLayerRef.current.remove();
+      setbackLayerRef.current = null;
+    }
+    if (config.setbackEnabled && mapRef.current) {
+      try {
+        const outerRing = ring.map(([lat, lng]) => [lng, lat] as [number, number]);
+        const innerBuf = turf.buffer(farmPolygon, setbackKm, { units: 'kilometers' });
+        if (innerBuf) {
+          const innerCoords = (innerBuf.geometry as GeoJSON.Polygon).coordinates[0] as [number, number][];
+          const outerLatLng = outerRing.map(([lng, lat]) => [lat, lng] as [number, number]);
+          const innerLatLng = innerCoords.map(([lng, lat]) => [lat, lng] as [number, number]);
+          setbackLayerRef.current = L.polygon(
+            [outerLatLng, innerLatLng],
+            { color: '#f59e0b', fillColor: '#fbbf24', fillOpacity: 0.15, weight: 1, dashArray: '4,4' }
+          ).addTo(mapRef.current);
+        }
+      } catch { /* ignore setback viz errors */ }
     }
 
     let roadAreaM2 = 0;
@@ -466,12 +498,57 @@ export default function FarmMap({ config, onResult, onPolygonChange }: FarmMapPr
     }
   }, [config, hasPolygon, designOrchard]);
 
+  // ─── Load parcel from backend ───
+  const loadParcel = useCallback(async () => {
+    if (!mapRef.current) return;
+    const center = mapRef.current.getCenter();
+    setParcelLoading(true);
+    try {
+      const apiBase = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
+      const res = await fetch(`${apiBase}/api/land/parcel?lat=${center.lat}&lng=${center.lng}`);
+      if (!res.ok) throw new Error('parcel fetch failed');
+      const data = await res.json();
+      if (!data.coordinates || data.coordinates.length < 3) throw new Error('no coordinates');
+
+      // Clear existing polygon
+      if (polygonLayerRef.current) { polygonLayerRef.current.remove(); polygonLayerRef.current = null; }
+      treeLayersRef.current?.clearLayers();
+      roadLayersRef.current?.clearLayers();
+      if (setbackLayerRef.current) { setbackLayerRef.current.remove(); setbackLayerRef.current = null; }
+      roadsRef.current = [];
+      setRoadCount(0);
+
+      // coordinates come as [[lng, lat], ...] from GeoJSON
+      const coords: [number, number][] = data.coordinates.map(
+        ([lng, lat]: [number, number]) => [lat, lng] as [number, number]
+      );
+
+      drawPointsRef.current = coords;
+      polygonCoordsRef.current = coords;
+      onPolygonChange(coords);
+
+      polygonLayerRef.current = L.polygon(coords, {
+        color: '#dc2626', fillColor: '#fecaca', fillOpacity: 0.2, weight: 2,
+      }).addTo(mapRef.current!);
+
+      setHasPolygon(true);
+      mapRef.current!.fitBounds(polygonLayerRef.current.getBounds(), { padding: [50, 50] });
+      persistState();
+      setTimeout(() => designOrchard(), 100);
+    } catch {
+      alert('지번 경계를 불러올 수 없습니다. 지도 중앙을 농지 위로 이동해 주세요.');
+    } finally {
+      setParcelLoading(false);
+    }
+  }, [onPolygonChange, persistState, designOrchard]);
+
   // ─── Clear all ───
   const clearAll = () => {
     if (!mapRef.current) return;
     cleanupListeners();
 
     if (polygonLayerRef.current) { polygonLayerRef.current.remove(); polygonLayerRef.current = null; }
+    if (setbackLayerRef.current) { setbackLayerRef.current.remove(); setbackLayerRef.current = null; }
     treeLayersRef.current?.clearLayers();
     roadLayersRef.current?.clearLayers();
 
@@ -598,6 +675,11 @@ export default function FarmMap({ config, onResult, onPolygonChange }: FarmMapPr
               style={{ background: '#dc2626' }}>
               밭 그리기
             </button>
+            <button onClick={loadParcel} disabled={parcelLoading}
+              className="px-4 py-2.5 rounded-lg shadow-lg font-semibold text-sm text-white transition-colors disabled:opacity-50"
+              style={{ background: '#2563eb' }}>
+              {parcelLoading ? '불러오는 중...' : '지번 불러오기'}
+            </button>
             {hasPolygon && (
               <button onClick={startRoadDrawing}
                 className="px-4 py-2.5 rounded-lg shadow-lg font-semibold text-sm text-white transition-colors"
@@ -699,6 +781,12 @@ export default function FarmMap({ config, onResult, onPolygonChange }: FarmMapPr
             <span className="w-3 h-3 rounded-full" style={{ background: '#22c55e', border: '1.5px solid #16a34a' }} />
             <span style={{ color: 'var(--text-secondary)' }}>나무 ({config.rowAngle}°)</span>
           </div>
+          {config.setbackEnabled && (
+            <div className="flex items-center gap-2">
+              <span className="w-3 h-3 rounded" style={{ background: '#fbbf24', border: '1.5px dashed #f59e0b' }} />
+              <span style={{ color: 'var(--text-secondary)' }}>이격 ({config.setbackDistance}m)</span>
+            </div>
+          )}
           {roadCount > 0 && (
             <div className="flex items-center gap-2">
               <span className="w-3 h-3 rounded" style={{ background: '#a8a29e', border: '1.5px solid #78716c' }} />

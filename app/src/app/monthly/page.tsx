@@ -3,6 +3,8 @@ import StatisticsPanel from '@/components/dashboard/StatisticsPanel';
 import WeatherWidget from '@/components/dashboard/WeatherWidget';
 import PriceWidget from '@/components/dashboard/PriceWidget';
 import DataSources, { SOURCES } from '@/components/ui/DataSources';
+import { getCurrentForecast, getCropConditionBadge, varietyOutlooks, getVarietyRisk } from '@/data/yield-forecast';
+import { getContactsForMonth } from '@/data/contacts';
 
 export default function MonthlyPage() {
   const now = new Date();
@@ -152,6 +154,107 @@ export default function MonthlyPage() {
           ))}
         </div>
       </section>
+
+      {/* 작황 전망 */}
+      {(() => {
+        const forecast = getCurrentForecast();
+        const badge = getCropConditionBadge(forecast.overallScore);
+        return (
+          <section className="rounded-xl border bg-[var(--surface-primary)] p-6" style={{ borderColor: 'var(--border-default)', boxShadow: 'var(--shadow-1)' }}>
+            <h2 className="font-semibold mb-4" style={{ fontSize: 'var(--fs-xl)', color: 'var(--text-primary)' }}>
+              {month}월 작황 전망
+            </h2>
+
+            <div className="flex items-center gap-4 mb-4">
+              <div className="flex h-16 w-16 flex-shrink-0 items-center justify-center rounded-2xl font-bold" style={{ fontSize: 'var(--fs-3xl)', background: badge.bg, color: badge.color }}>
+                {forecast.overallScore}
+              </div>
+              <div>
+                <span className="rounded-full px-3 py-1 font-semibold text-sm" style={{ background: badge.bg, color: badge.color }}>
+                  {badge.label}
+                </span>
+                <p className="mt-1" style={{ fontSize: 'var(--fs-sm)', color: 'var(--text-secondary)' }}>
+                  {forecast.farmingImplication}
+                </p>
+              </div>
+            </div>
+
+            {forecast.risks.length > 0 && (
+              <div className="mb-4">
+                <p className="font-medium mb-2" style={{ fontSize: 'var(--fs-sm)', color: 'var(--text-primary)' }}>이달 위험 요인</p>
+                <div className="space-y-2">
+                  {forecast.risks.map((risk, i) => (
+                    <div key={i} className="rounded-lg p-3 flex items-start gap-3" style={{
+                      background: risk.severity === 'critical' ? 'var(--status-danger-bg)' : risk.severity === 'high' ? 'var(--status-warning-bg)' : 'var(--surface-tertiary)',
+                    }}>
+                      <span className="rounded-md px-2 py-0.5 font-medium flex-shrink-0" style={{
+                        fontSize: 'var(--fs-xs)',
+                        background: risk.severity === 'critical' ? 'var(--status-danger)' : risk.severity === 'high' ? 'var(--status-warning)' : 'var(--brand-light)',
+                        color: '#fff',
+                      }}>
+                        {risk.label}
+                      </span>
+                      <div className="flex-1">
+                        <p style={{ fontSize: 'var(--fs-sm)', color: 'var(--text-secondary)' }}>{risk.description}</p>
+                        <p className="mt-1 font-medium tabular-nums" style={{ fontSize: 'var(--fs-xs)', color: 'var(--text-muted)' }}>
+                          수확 영향: -{risk.yieldImpactRange[0]}~{risk.yieldImpactRange[1]}%
+                        </p>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            <div>
+              <p className="font-medium mb-2" style={{ fontSize: 'var(--fs-sm)', color: 'var(--text-primary)' }}>품종별 전망</p>
+              <div className="flex flex-wrap gap-2">
+                {varietyOutlooks.map((v) => {
+                  const risk = getVarietyRisk(v.variety, month);
+                  const riskColor = risk === '양호' ? 'var(--status-success)' : risk === '보통' ? 'var(--status-warning)' : 'var(--status-danger)';
+                  const riskBg = risk === '양호' ? 'var(--status-success-bg)' : risk === '보통' ? 'var(--status-warning-bg)' : 'var(--status-danger-bg)';
+                  return (
+                    <span key={v.variety} className="rounded-lg px-3 py-1.5 font-medium" style={{ fontSize: 'var(--fs-xs)', background: riskBg, color: riskColor }}>
+                      {v.variety}: {risk}
+                    </span>
+                  );
+                })}
+              </div>
+            </div>
+          </section>
+        );
+      })()}
+
+      {/* 이달 연락할 곳 */}
+      {(() => {
+        const peakContacts = getContactsForMonth(month);
+        if (peakContacts.length === 0) return null;
+        const display = peakContacts.slice(0, 3);
+        return (
+          <section className="rounded-xl border bg-[var(--surface-primary)] p-5" style={{ borderColor: 'var(--border-default)', boxShadow: 'var(--shadow-1)' }}>
+            <div className="flex items-center justify-between mb-3">
+              <h2 className="font-semibold" style={{ fontSize: 'var(--fs-lg)', color: 'var(--text-primary)' }}>
+                이달 연락할 곳
+              </h2>
+              <Link href="/resources?tab=contacts" className="font-medium hover:underline"
+                style={{ fontSize: 'var(--fs-sm)', color: 'var(--accent)' }}>
+                전체 연락처 →
+              </Link>
+            </div>
+            <div className="flex flex-wrap gap-2">
+              {display.map((c) => (
+                <div key={c.id} className="flex items-center gap-2 rounded-lg px-3 py-2" style={{ background: 'var(--status-warning-bg)' }}>
+                  <span>{c.icon}</span>
+                  <div>
+                    <p className="font-medium" style={{ fontSize: 'var(--fs-sm)', color: 'var(--text-primary)' }}>{c.name}</p>
+                    <p style={{ fontSize: 'var(--fs-xs)', color: 'var(--text-muted)' }}>{c.whenToContact[0]}</p>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </section>
+        );
+      })()}
 
       {/* Quick Access Grid */}
       <section>

@@ -131,6 +131,10 @@ export async function fetchRegionalArea() {
 export interface OrchardDesignReq {
   area_pyeong: number;
   variety_id: string;
+  rootstock_id?: string;
+  machine_id?: string;
+  setback_enabled?: boolean;
+  setback_distance?: number;
   spacing_row?: number;
   spacing_tree?: number;
   orientation?: string;
@@ -140,6 +144,9 @@ export interface OrchardDesignRes {
   area_pyeong: number;
   area_m2: number;
   variety: string;
+  rootstock_id?: string;
+  rootstock_name?: string;
+  machine_id?: string;
   spacing: { row: number; tree: number };
   total_trees: number;
   rows: number;
@@ -148,6 +155,8 @@ export interface OrchardDesignRes {
   planting_density: number;
   estimated_yield_kg: number;
   years_to_full_production: number;
+  setback_applied: boolean;
+  effective_area_m2?: number;
 }
 
 export async function fetchOrchardDesign(req: OrchardDesignReq) {
@@ -232,6 +241,86 @@ export async function fetchVarietyRecommend(req: RecommendReq) {
     method: 'POST',
     body: JSON.stringify(req),
   });
+}
+
+// ─── Forecast ────────────────────────────────────────
+
+export interface MonthScore {
+  month: number;
+  score: number;
+  label: string;
+  gdd_deviation: number;
+  frost_risk: number;
+  precip_balance: number;
+  extreme_temp: number;
+}
+
+export interface BloomPrediction {
+  variety: string;
+  bloom_date: string | null;
+  harvest_date: string | null;
+  gdd_at_bloom: number | null;
+  days_to_harvest: number | null;
+}
+
+export interface VarietyRisk {
+  variety: string;
+  frost_risk: string;
+  heat_risk: string;
+  rain_risk: string;
+  disease_risk: string;
+  overall: string;
+  overall_score: number;
+}
+
+export interface GddProgress {
+  date: string;
+  accumulated: number;
+  normal: number;
+}
+
+export interface YieldPrediction {
+  region_id: string;
+  year: number;
+  predicted_yield_kg_per_10a: number;
+  confidence: number;
+  model_used: string;
+  features_used: string[];
+}
+
+export interface AnnualForecast {
+  region_id: string;
+  year: number;
+  overall_score: number;
+  overall_label: string;
+  recommendation: string;
+  monthly_scores: MonthScore[];
+  bloom_predictions: BloomPrediction[];
+  variety_risks: VarietyRisk[];
+  yield_prediction: YieldPrediction | null;
+  data_source: string;
+}
+
+export interface GddResponse {
+  region_id: string;
+  year: number;
+  base_temp: number;
+  current_gdd: number;
+  normal_gdd: number;
+  deviation_pct: number;
+  daily_progress: GddProgress[];
+}
+
+export async function fetchAnnualForecast(regionId: string, year?: number) {
+  const params = new URLSearchParams({ region_id: regionId });
+  if (year) params.set('year', String(year));
+  return request<AnnualForecast>(`/api/forecast/annual?${params}`);
+}
+
+export async function fetchGddProgress(regionId: string, year?: number) {
+  const params = new URLSearchParams({ region_id: regionId });
+  if (year) params.set('year', String(year));
+  return request<GddResponse>(`/api/forecast/gdd?${params}`);
 }
 
 // ─── Health ──────────────────────────────────────────

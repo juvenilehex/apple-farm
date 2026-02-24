@@ -6,7 +6,7 @@ import {
   diseases, spraySchedule, pesticideProducts, doNotSprayConditions, demoReviews,
   type PesticideProduct, type SpraySchedule as SprayScheduleType,
 } from '@/data/pesticides';
-import { pests, fertilizerSchedule, type PestInfo } from '@/data/producer';
+import { pests, fertilizerSchedule, costItems, type PestInfo } from '@/data/producer';
 import { safetyPeriods } from '@/data/farming-guide';
 
 type Tab = 'schedule' | 'diseases' | 'pests' | 'fertilizer' | 'products' | 'donts' | 'safety' | 'history';
@@ -188,6 +188,31 @@ export default function SprayPage() {
               </button>
             ))}
           </div>
+
+          {/* 연간 방제 비용 요약 */}
+          {(() => {
+            const pesticideCost = costItems.find(c => c.id === 'pesticide')?.amountPer10a ?? 350000;
+            const sprayLaborCost = costItems.find(c => c.id === 'spray-labor')?.amountPer10a ?? 150000;
+            const totalSprayCost = pesticideCost + sprayLaborCost;
+            const perSpray = Math.round(totalSprayCost / 14);
+            return (
+              <div className="rounded-xl border p-4" style={{ borderColor: 'var(--accent)', background: 'var(--accent-subtle)' }}>
+                <div className="flex items-center justify-between flex-wrap gap-2">
+                  <div>
+                    <p className="font-bold" style={{ fontSize: 'var(--fs-base)', color: 'var(--text-primary)' }}>
+                      연간 방제 비용 약 {(totalSprayCost / 10000).toFixed(0)}만원/10a
+                    </p>
+                    <p style={{ fontSize: 'var(--fs-sm)', color: 'var(--text-secondary)' }}>
+                      약제 {(pesticideCost / 10000).toFixed(0)}만 + 노동 {(sprayLaborCost / 10000).toFixed(0)}만 · 1회당 ~{(perSpray / 10000).toFixed(1)}만원
+                    </p>
+                  </div>
+                  <Link href="/producer/cost" className="rounded-lg px-3 py-1.5 font-medium text-white" style={{ fontSize: 'var(--fs-sm)', background: 'var(--accent)' }}>
+                    경영비 분석 →
+                  </Link>
+                </div>
+              </div>
+            );
+          })()}
 
           {filteredSchedule.map((schedule) => (
             <div key={`${schedule.month}-${schedule.name}`} className="rounded-xl border bg-[var(--surface-primary)] p-5"
@@ -696,7 +721,7 @@ export default function SprayPage() {
                     style={{
                       fontSize: 'var(--fs-sm)',
                       borderColor: safetyFilter === f.value ? 'var(--brand)' : 'var(--border-default)',
-                      background: safetyFilter === f.value ? 'var(--brand)' : 'white',
+                      background: safetyFilter === f.value ? 'var(--brand)' : 'var(--surface-primary)',
                       color: safetyFilter === f.value ? 'white' : 'var(--text-secondary)',
                     }}>
                     {f.label}
@@ -718,7 +743,7 @@ export default function SprayPage() {
                   <div key={sp.productName} className="rounded-lg border p-3 flex items-center justify-between gap-3"
                     style={{
                       borderColor: sp.phi === 0 ? 'var(--status-success)' : isExpired ? 'var(--status-danger)' : 'var(--border-default)',
-                      background: sp.phi === 0 ? 'var(--status-success-bg)' : isExpired ? 'var(--status-danger-bg)' : 'white',
+                      background: sp.phi === 0 ? 'var(--status-success-bg)' : isExpired ? 'var(--status-danger-bg)' : 'var(--surface-primary)',
                     }}>
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center gap-2 flex-wrap">
@@ -890,6 +915,19 @@ export default function SprayPage() {
           </p>
         </div>
       )}
+
+      {/* 경영비 CTA */}
+      <div className="rounded-xl border p-5" style={{ borderColor: 'var(--brand-light)', background: 'var(--brand-subtle)' }}>
+        <p className="font-bold mb-1" style={{ fontSize: 'var(--fs-base)', color: 'var(--text-primary)' }}>
+          방제 비용이 부담되나요?
+        </p>
+        <p className="mb-3" style={{ fontSize: 'var(--fs-sm)', color: 'var(--text-secondary)' }}>
+          경영비 분석에서 공동방제, 적정 살포 횟수 등 절감 전략을 확인하세요.
+        </p>
+        <Link href="/producer/cost" className="font-medium hover:underline" style={{ fontSize: 'var(--fs-sm)', color: 'var(--brand)' }}>
+          경영비 분석 바로가기 →
+        </Link>
+      </div>
 
       {/* Cross-links */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">

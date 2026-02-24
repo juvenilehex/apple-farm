@@ -55,6 +55,7 @@ const featureCategories = [
       { label: '정부 지원', href: '/resources' },
       { label: '재배 가이드', href: '/producer/guide' },
       { label: '사과 가이드', href: '/consumer/guide' },
+      { label: 'AgriTech 혁신', href: '/innovation' },
     ],
   },
 ];

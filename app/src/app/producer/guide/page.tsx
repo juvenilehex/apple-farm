@@ -11,6 +11,7 @@ import {
   climateZoneShifts, heatTolerantVarieties, climateAdaptations, climateFutureFacts,
   type PruningGuide, type VarietyPruning as VPType,
 } from '@/data/farming-guide';
+import { costItems } from '@/data/producer';
 
 const ClimateMap = dynamic(() => import('@/components/climate/ClimateMap'), { ssr: false });
 
@@ -22,6 +23,18 @@ export default function FarmingGuidePage() {
   const [storageFilter, setStorageFilter] = useState<string>('all');
 
   const currentMonth = new Date().getMonth() + 1;
+
+  // 월별 주요 비용 콜아웃 (costItems 기반)
+  const stageCostMap: Record<number, string> = {
+    1: `전정 노동비 약 ${((costItems.find(c => c.id === 'pruning-labor')?.amountPer10a ?? 200000) / 10000).toFixed(0)}만원/10a`,
+    2: `전정 마무리 + 기계유유제 약제비 포함`,
+    3: `기비 (비료+퇴비) 약 ${(((costItems.find(c => c.id === 'fertilizer')?.amountPer10a ?? 150000) + (costItems.find(c => c.id === 'compost')?.amountPer10a ?? 200000)) / 10000).toFixed(0)}만원/10a`,
+    5: `적과 노동비 약 ${((costItems.find(c => c.id === 'thinning-labor')?.amountPer10a ?? 300000) / 10000).toFixed(0)}만원/10a (가장 많은 노동력)`,
+    6: `장마 전 집중 방제 약 ${(((costItems.find(c => c.id === 'pesticide')?.amountPer10a ?? 350000) / 14) / 10000).toFixed(1)}만원/회`,
+    9: `수확 노동비 약 ${((costItems.find(c => c.id === 'harvest-labor')?.amountPer10a ?? 250000) / 10000).toFixed(0)}만원/10a`,
+    10: `가을 기비 퇴비 약 ${((costItems.find(c => c.id === 'compost')?.amountPer10a ?? 200000) / 10000).toFixed(0)}만원/10a`,
+    11: `저장고 관리·포장재 약 ${((costItems.find(c => c.id === 'packing')?.amountPer10a ?? 120000) / 10000).toFixed(0)}만원/10a`,
+  };
 
   const tabs: { key: Tab; label: string }[] = [
     { key: 'growth', label: '생육 단계' },
@@ -63,7 +76,7 @@ export default function FarmingGuidePage() {
             className="flex-shrink-0 rounded-lg px-4 py-2 font-medium transition-all duration-150"
             style={{
               fontSize: 'var(--fs-sm)',
-              background: tab === t.key ? 'white' : 'transparent',
+              background: tab === t.key ? 'var(--surface-primary)' : 'transparent',
               color: tab === t.key ? 'var(--text-primary)' : 'var(--text-muted)',
               boxShadow: tab === t.key ? 'var(--shadow-1)' : 'none',
             }}
@@ -93,7 +106,7 @@ export default function FarmingGuidePage() {
                   className="rounded-xl border p-5"
                   style={{
                     borderColor: isCurrent ? 'var(--brand-light)' : 'var(--border-default)',
-                    background: isCurrent ? 'var(--surface-warm)' : 'white',
+                    background: isCurrent ? 'var(--surface-warm)' : 'var(--surface-primary)',
                     boxShadow: isCurrent ? 'var(--shadow-2)' : 'var(--shadow-1)',
                   }}>
                   <div className="flex items-center gap-3 mb-3">
@@ -137,6 +150,16 @@ export default function FarmingGuidePage() {
                       ))}
                     </div>
                   )}
+                  {stageCostMap[stage.month] && (
+                    <div className="mt-3 rounded-lg p-3 flex items-center justify-between flex-wrap gap-2" style={{ background: 'var(--accent-subtle)' }}>
+                      <p style={{ fontSize: 'var(--fs-xs)', color: 'var(--accent)' }}>
+                        <strong>이달 주요 비용:</strong> {stageCostMap[stage.month]}
+                      </p>
+                      <Link href="/producer/cost" className="font-medium hover:underline" style={{ fontSize: 'var(--fs-xs)', color: 'var(--accent)' }}>
+                        경영비 분석 →
+                      </Link>
+                    </div>
+                  )}
                 </div>
               );
             })}
@@ -178,6 +201,23 @@ export default function FarmingGuidePage() {
             </p>
           </div>
 
+          {/* 전정 노동비 카드 */}
+          <div className="rounded-xl border p-4" style={{ borderColor: 'var(--accent)', background: 'var(--accent-subtle)' }}>
+            <div className="flex items-center justify-between flex-wrap gap-2">
+              <div>
+                <p className="font-bold" style={{ fontSize: 'var(--fs-base)', color: 'var(--text-primary)' }}>
+                  전정 노동비 약 {((costItems.find(c => c.id === 'pruning-labor')?.amountPer10a ?? 200000) / 10000).toFixed(0)}만원/10a (2~3인/일)
+                </p>
+                <p style={{ fontSize: 'var(--fs-sm)', color: 'var(--text-secondary)' }}>
+                  고밀식(M9) 전환 시 30~40% 절감 가능
+                </p>
+              </div>
+              <Link href="/producer/cost" className="rounded-lg px-3 py-1.5 font-medium text-white" style={{ fontSize: 'var(--fs-sm)', background: 'var(--accent)' }}>
+                경영비 분석 →
+              </Link>
+            </div>
+          </div>
+
           {/* Season Filter */}
           <div className="flex gap-2">
             {[
@@ -191,7 +231,7 @@ export default function FarmingGuidePage() {
                 style={{
                   fontSize: 'var(--fs-sm)',
                   borderColor: pruningFilter === f.value ? 'var(--brand)' : 'var(--border-default)',
-                  background: pruningFilter === f.value ? 'var(--brand)' : 'white',
+                  background: pruningFilter === f.value ? 'var(--brand)' : 'var(--surface-primary)',
                   color: pruningFilter === f.value ? 'white' : 'var(--text-secondary)',
                 }}>
                 {f.label}
@@ -271,7 +311,7 @@ export default function FarmingGuidePage() {
                 style={{
                   fontSize: 'var(--fs-sm)',
                   borderColor: storageFilter === f.value ? 'var(--brand)' : 'var(--border-default)',
-                  background: storageFilter === f.value ? 'var(--brand)' : 'white',
+                  background: storageFilter === f.value ? 'var(--brand)' : 'var(--surface-primary)',
                   color: storageFilter === f.value ? 'white' : 'var(--text-secondary)',
                 }}>
                 {f.label}
@@ -627,6 +667,19 @@ export default function FarmingGuidePage() {
         </div>
       )}
 
+      {/* 경영비 CTA */}
+      <div className="rounded-xl border p-5" style={{ borderColor: 'var(--brand-light)', background: 'var(--brand-subtle)' }}>
+        <p className="font-bold mb-1" style={{ fontSize: 'var(--fs-base)', color: 'var(--text-primary)' }}>
+          재배 비용이 궁금하신가요?
+        </p>
+        <p className="mb-3" style={{ fontSize: 'var(--fs-sm)', color: 'var(--text-secondary)' }}>
+          전정·적과·수확 노동비부터 자재비까지, 10a당 전체 경영비를 확인하세요.
+        </p>
+        <Link href="/producer/cost" className="font-medium hover:underline" style={{ fontSize: 'var(--fs-sm)', color: 'var(--brand)' }}>
+          경영비 분석 바로가기 →
+        </Link>
+      </div>
+
       {/* Cross Links */}
       <section className="grid grid-cols-1 sm:grid-cols-3 gap-3 pt-4">
         <Link href="/producer/spray" className="rounded-xl border bg-[var(--surface-primary)] p-4 transition-colors hover:border-[var(--border-strong)]"
@@ -723,7 +776,7 @@ function PruningCard({ guide }: { guide: PruningGuide }) {
 
 function MiniStat({ label, value }: { label: string; value: string }) {
   return (
-    <div className="rounded-md p-1.5 text-center" style={{ background: 'white' }}>
+    <div className="rounded-md p-1.5 text-center" style={{ background: 'var(--surface-primary)' }}>
       <p className="text-[10px]" style={{ color: 'var(--text-muted)' }}>{label}</p>
       <p className="font-semibold" style={{ fontSize: 'var(--fs-xs)', color: 'var(--text-primary)' }}>{value}</p>
     </div>

@@ -49,6 +49,7 @@ const navGroups = [
     label: '지원',
     items: [
       { href: '/resources', label: '정부 지원', description: '보조금·보험·교육' },
+      { href: '/innovation', label: 'AgriTech', description: '신기술·사례·사업' },
     ],
   },
 ];

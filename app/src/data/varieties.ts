@@ -18,7 +18,14 @@ export interface AppleVariety {
   yieldPerTree: string; // kg/주, M26 반왜성 대목 성목 기준 (M9 왜성은 60~70% 수준)
   yearsToFruit: number;
   pollination: string;
-  spacing: { row: number; tree: number }; // meters
+  spacing: { row: number; tree: number }; // meters (M26 반왜성 기본값)
+  rootstockSpacing?: {
+    rootstockId: string;   // 'M9' | 'M26' | 'MM106' | 'seedling'
+    rowSpacing: number;
+    treeSpacing: number;
+    maxHeight: number;
+    canopyWidth: number;
+  }[];
   description: string;
   tips: string;
   category: 'early' | 'mid' | 'late' | 'very-late';
@@ -109,6 +116,12 @@ export const varieties: AppleVariety[] = [
     yearsToFruit: 2,
     pollination: '타가수분 필요',
     spacing: { row: 4.5, tree: 2.5 },
+    rootstockSpacing: [
+      { rootstockId: 'M9', rowSpacing: 3.5, treeSpacing: 1.5, maxHeight: 2.3, canopyWidth: 1.4 },
+      { rootstockId: 'M26', rowSpacing: 4.5, treeSpacing: 2.5, maxHeight: 3.5, canopyWidth: 2.2 },
+      { rootstockId: 'MM106', rowSpacing: 5.0, treeSpacing: 3.0, maxHeight: 4.0, canopyWidth: 2.8 },
+      { rootstockId: 'seedling', rowSpacing: 6.0, treeSpacing: 4.0, maxHeight: 5.0, canopyWidth: 3.8 },
+    ],
     category: 'early',
     description: '전 세계적으로 가장 많이 재배되는 품종 중 하나. 달콤하고 아삭한 식감으로 어린이 간식용으로 인기.',
     tips: '왜화재배 적합. 과다 착과 시 격년결과 발생 주의.',
@@ -167,6 +180,12 @@ export const varieties: AppleVariety[] = [
     yearsToFruit: 3,
     pollination: '타가수분 필요',
     spacing: { row: 5, tree: 3.5 },
+    rootstockSpacing: [
+      { rootstockId: 'M9', rowSpacing: 3.75, treeSpacing: 1.5, maxHeight: 2.5, canopyWidth: 1.5 },
+      { rootstockId: 'M26', rowSpacing: 5.0, treeSpacing: 3.0, maxHeight: 3.8, canopyWidth: 2.5 },
+      { rootstockId: 'MM106', rowSpacing: 5.5, treeSpacing: 3.5, maxHeight: 4.5, canopyWidth: 3.0 },
+      { rootstockId: 'seedling', rowSpacing: 7.0, treeSpacing: 5.0, maxHeight: 5.5, canopyWidth: 4.0 },
+    ],
     category: 'mid',
     description: '추석 선물용으로 최고 인기. 국산 사과의 자존심으로 불리며, 착색과 당도가 뛰어납니다. 국내 재배면적 2위.',
     tips: '추석 시세에 맞춰 수확 시기 조절이 핵심. 과다 착과 방지하여 대과 생산.',
@@ -281,6 +300,12 @@ export const varieties: AppleVariety[] = [
     yearsToFruit: 4,
     pollination: '타가수분 필요',
     spacing: { row: 5, tree: 4 },
+    rootstockSpacing: [
+      { rootstockId: 'M9', rowSpacing: 3.75, treeSpacing: 1.75, maxHeight: 2.8, canopyWidth: 1.6 },
+      { rootstockId: 'M26', rowSpacing: 5.0, treeSpacing: 3.0, maxHeight: 4.0, canopyWidth: 2.8 },
+      { rootstockId: 'MM106', rowSpacing: 5.5, treeSpacing: 3.5, maxHeight: 4.5, canopyWidth: 3.2 },
+      { rootstockId: 'seedling', rowSpacing: 7.0, treeSpacing: 5.0, maxHeight: 6.0, canopyWidth: 4.5 },
+    ],
     category: 'late',
     description: '한국 사과의 대명사. 전체 재배면적의 60% 이상을 차지하며 높은 당도와 뛰어난 저장성이 최대 장점. 설 선물용 최고 인기.',
     tips: '11월 서리 전 수확 완료. 꼭지따기(줄무늬 부사) vs 무봉지(양광 부사) 선택. M9 대목 왜화재배 추세.',
@@ -338,6 +363,12 @@ export const varieties: AppleVariety[] = [
     yearsToFruit: 4,
     pollination: '타가수분 필요',
     spacing: { row: 5, tree: 3.5 },
+    rootstockSpacing: [
+      { rootstockId: 'M9', rowSpacing: 3.75, treeSpacing: 1.75, maxHeight: 2.8, canopyWidth: 1.7 },
+      { rootstockId: 'M26', rowSpacing: 5.0, treeSpacing: 3.0, maxHeight: 4.0, canopyWidth: 2.8 },
+      { rootstockId: 'MM106', rowSpacing: 5.5, treeSpacing: 3.5, maxHeight: 4.5, canopyWidth: 3.2 },
+      { rootstockId: 'seedling', rowSpacing: 7.0, treeSpacing: 5.0, maxHeight: 6.0, canopyWidth: 4.5 },
+    ],
     category: 'late',
     description: '꿀사과로 불리는 최고 당도 품종. 독특한 향기와 밀이 가득 찬 과육이 특징. 프리미엄 시장에서 높은 가격대 형성.',
     tips: '재배 난이도가 높고 해거리가 심함. 적과를 철저히 하고 수세 관리가 핵심.',
@@ -367,6 +398,12 @@ export const varieties: AppleVariety[] = [
     yearsToFruit: 3,
     pollination: '타가수분 필요',
     spacing: { row: 5, tree: 3.5 },
+    rootstockSpacing: [
+      { rootstockId: 'M9', rowSpacing: 3.75, treeSpacing: 1.75, maxHeight: 2.7, canopyWidth: 1.6 },
+      { rootstockId: 'M26', rowSpacing: 5.0, treeSpacing: 3.0, maxHeight: 3.8, canopyWidth: 2.6 },
+      { rootstockId: 'MM106', rowSpacing: 5.5, treeSpacing: 3.5, maxHeight: 4.5, canopyWidth: 3.0 },
+      { rootstockId: 'seedling', rowSpacing: 7.0, treeSpacing: 5.0, maxHeight: 5.5, canopyWidth: 4.0 },
+    ],
     category: 'late',
     description: '농촌진흥청 육성 만생종. 후지 대체 품종으로 육성되었으며 병해충 저항성이 우수합니다.',
     tips: '후지 대비 수확기가 2~3주 빠르므로 노동력 분산에 유리.',

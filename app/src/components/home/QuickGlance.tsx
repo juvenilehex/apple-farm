@@ -4,6 +4,7 @@ import Link from 'next/link';
 import { useWeatherApi } from '@/lib/hooks/useWeatherApi';
 import { usePriceApi } from '@/lib/hooks/usePriceApi';
 import { appleRegions } from '@/data/regions';
+import { getCurrentForecast, getCropConditionBadge } from '@/data/yield-forecast';
 
 const skyLabel: Record<string, string> = {
   clear: '맑음',
@@ -24,6 +25,10 @@ export default function QuickGlance({ taskCount }: QuickGlanceProps) {
 
   // 후지 특등급 최신 가격
   const fujiPrice = allPrices.find((p) => p.variety === '후지' && p.grade === '특');
+
+  // 작황 전망
+  const forecast = getCurrentForecast();
+  const cropBadge = getCropConditionBadge(forecast.overallScore);
 
   const cards = [
     {
@@ -47,6 +52,13 @@ export default function QuickGlance({ taskCount }: QuickGlanceProps) {
       value: `${taskCount}건`,
       sub: '핵심 작업 바로가기',
     },
+    {
+      href: '/monthly',
+      label: '작황',
+      loading: false,
+      value: `${forecast.overallScore}점`,
+      sub: `${cropBadge.label} (${new Date().getMonth() + 1}월)`,
+    },
   ];
 
   return (
@@ -54,7 +66,7 @@ export default function QuickGlance({ taskCount }: QuickGlanceProps) {
       <h2 className="font-semibold mb-3" style={{ fontSize: 'var(--fs-lg)', color: 'var(--text-primary)' }}>
         한눈에 보기
       </h2>
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
         {cards.map((card) => (
           <Link
             key={card.href}

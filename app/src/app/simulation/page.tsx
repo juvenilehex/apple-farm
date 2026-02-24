@@ -136,11 +136,17 @@ function SimulationContent() {
   const initVariety = searchParams.get('variety') || 'fuji';
   const initV = varieties.find(v => v.id === initVariety) || varieties.find(v => v.id === 'fuji')!;
   const initPrice = initV.marketValue >= 4 ? 6000 : initV.marketValue >= 3 ? 4500 : 3500;
-  const initTrees = Math.round(3300 / (initV.spacing.row * initV.spacing.tree));
+  const initAreaParam = searchParams.get('area');
+  const initTreesParam = searchParams.get('trees');
+  const initAreaM2 = initAreaParam ? parseFloat(initAreaParam) * 3.3058 : 3300;
+  const initTrees = initTreesParam
+    ? parseInt(initTreesParam)
+    : Math.round(3300 / (initV.spacing.row * initV.spacing.tree));
+  const fromDesign = !!(initAreaParam || initTreesParam);
 
   const [config, setConfig] = useState<SimConfig>({
     varietyId: initVariety,
-    areaM2: 3300,
+    areaM2: Math.round(initAreaM2),
     treeCount: initTrees,
     treeAge: 10,
     pricePerKg: initPrice,
@@ -242,6 +248,11 @@ function SimulationContent() {
         <p style={{ fontSize: 'var(--fs-base)', color: 'var(--text-tertiary)' }}>
           내 과수원의 예상 수익을 품종·면적·수령별로 계산해보세요
         </p>
+        {fromDesign && (
+          <p className="mt-1 rounded-lg px-3 py-1.5 inline-block" style={{ fontSize: 'var(--fs-xs)', background: 'var(--accent-subtle)', color: 'var(--accent)' }}>
+            과수원 설계 결과가 자동 반영되었습니다 ({initV.name} · {initAreaParam}평 · {initTrees}주)
+          </p>
+        )}
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
