@@ -1,0 +1,203 @@
+/* pj18_apple — E3 Experience Polish
+ *
+ * Scroll-linked fade-in, hover micro-interactions, focus ring polish,
+ * selection branding, smooth number transitions.
+ * All animations respect prefers-reduced-motion from globals.css.
+ */
+
+/* ========== Scroll-Linked Fade-In ========== */
+
+/* Apply to any element: class="scroll-reveal" */
+.scroll-reveal {
+  opacity: 0;
+  transform: translateY(16px);
+  transition: opacity 0.5s ease, transform 0.5s ease;
+}
+
+.scroll-reveal.revealed {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+/* Staggered children: add class="scroll-stagger" to parent */
+.scroll-stagger > .scroll-reveal:nth-child(1) { transition-delay: 0ms; }
+.scroll-stagger > .scroll-reveal:nth-child(2) { transition-delay: 60ms; }
+.scroll-stagger > .scroll-reveal:nth-child(3) { transition-delay: 120ms; }
+.scroll-stagger > .scroll-reveal:nth-child(4) { transition-delay: 180ms; }
+.scroll-stagger > .scroll-reveal:nth-child(5) { transition-delay: 240ms; }
+.scroll-stagger > .scroll-reveal:nth-child(6) { transition-delay: 300ms; }
+
+/* ========== Hover Micro-Interactions for Cards ========== */
+
+/* General interactive card — use class="polish-card" */
+.polish-card {
+  transition:
+    transform 0.2s ease,
+    box-shadow 0.25s ease,
+    border-color 0.2s ease;
+}
+
+.polish-card:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-2);
+  border-color: var(--border-strong);
+}
+
+.polish-card:active {
+  transform: translateY(0);
+  box-shadow: var(--shadow-1);
+}
+
+/* Glass card hover enhancement */
+.glass-card.polish-card:hover {
+  background: var(--glass-hover);
+  border-color: rgba(255, 255, 255, 0.12);
+}
+
+html[data-theme="light"] .glass-card.polish-card:hover {
+  border-color: rgba(0, 0, 0, 0.08);
+}
+
+/* Stat card numeric highlight */
+.polish-card:hover .tabular-nums {
+  color: var(--brand-text);
+  transition: color 0.2s ease;
+}
+
+/* ========== Focus Ring Polish ========== */
+
+/* Enhanced focus ring with brand color glow */
+.focus-polish:focus-visible {
+  outline: 2px solid var(--brand);
+  outline-offset: 3px;
+  box-shadow: 0 0 0 5px var(--brand-subtle);
+  border-radius: 8px;
+  transition: box-shadow 0.15s ease;
+}
+
+/* Input focus polish */
+input.focus-polish:focus-visible,
+select.focus-polish:focus-visible,
+textarea.focus-polish:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 0;
+  box-shadow: 0 0 0 4px var(--accent-subtle);
+}
+
+/* ========== Selection Color Branding ========== */
+
+/* Already handled in globals.css, but adding component-level overrides */
+.polish-card ::selection {
+  background: rgba(106, 154, 112, 0.2);
+  color: var(--brand-text);
+}
+
+html[data-theme="light"] .polish-card ::selection {
+  background: rgba(74, 138, 82, 0.15);
+  color: var(--brand);
+}
+
+/* ========== Smooth Number Transitions ========== */
+
+/* Animated number container: class="smooth-number" */
+.smooth-number {
+  display: inline-block;
+  transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1),
+              color 0.3s ease;
+  font-variant-numeric: tabular-nums;
+}
+
+/* Scale bump when value changes — toggle class "number-updated" via JS */
+.smooth-number.number-updated {
+  animation: number-bump 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+@keyframes number-bump {
+  0%   { transform: scale(1); }
+  40%  { transform: scale(1.12); color: var(--brand-text); }
+  100% { transform: scale(1); }
+}
+
+/* Counter-based smooth number (CSS only, for simple counters) */
+.counter-smooth {
+  font-variant-numeric: tabular-nums;
+  transition: all 0.5s ease;
+}
+
+/* ========== Additional Micro-Interactions ========== */
+
+/* Sidebar nav item hover */
+.nav-polish {
+  transition: background 0.15s ease, padding-left 0.15s ease, color 0.15s ease;
+  border-radius: 8px;
+}
+.nav-polish:hover {
+  background: var(--surface-card-hover);
+  padding-left: 4px;
+}
+
+/* Tag / badge hover */
+.tag-polish {
+  transition: background 0.15s ease, transform 0.1s ease;
+}
+.tag-polish:hover {
+  transform: scale(1.05);
+}
+.tag-polish:active {
+  transform: scale(0.97);
+}
+
+/* Icon button polish */
+.icon-btn-polish {
+  transition: background 0.15s ease, transform 0.1s ease, color 0.15s ease;
+  border-radius: 8px;
+}
+.icon-btn-polish:hover {
+  background: var(--surface-card-hover);
+  color: var(--brand-text);
+}
+.icon-btn-polish:active {
+  transform: scale(0.92);
+}
+
+/* ========== Loading Skeleton Polish ========== */
+
+@keyframes skeleton-shimmer {
+  0%   { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
+}
+
+.skeleton-polish {
+  background: linear-gradient(
+    90deg,
+    var(--surface-card) 25%,
+    var(--surface-card-hover) 50%,
+    var(--surface-card) 75%
+  );
+  background-size: 200% 100%;
+  animation: skeleton-shimmer 1.8s ease-in-out infinite;
+  border-radius: 8px;
+}
+
+/* ========== Scroll-Reveal Intersection Observer Initializer ========== */
+/* This script block is injected via a <script> tag or a useEffect hook.
+   For Next.js, the recommended approach is importing polish.css in layout.tsx
+   and adding the observer in a client component. Below is a self-initializing
+   approach for direct inclusion. */
+
+/* Note: The IntersectionObserver JS is in the comment below for reference.
+   In Next.js, use a useEffect hook instead:
+
+   useEffect(() => {
+     const els = document.querySelectorAll('.scroll-reveal');
+     if (!els.length) return;
+     const obs = new IntersectionObserver(
+       (entries) => entries.forEach((e) => {
+         if (e.isIntersecting) { e.target.classList.add('revealed'); obs.unobserve(e.target); }
+       }),
+       { threshold: 0.1, rootMargin: '0px 0px -40px 0px' }
+     );
+     els.forEach((el) => obs.observe(el));
+     return () => obs.disconnect();
+   }, []);
+*/

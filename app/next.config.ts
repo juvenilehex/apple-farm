@@ -30,15 +30,21 @@ const securityHeaders = [
   },
 ];
 
+const isStaticExport = process.env.STATIC_EXPORT === "true";
+
 const nextConfig: NextConfig = {
-  async headers() {
-    return [
-      {
-        source: "/(.*)",
-        headers: securityHeaders,
-      },
-    ];
-  },
+  ...(isStaticExport
+    ? { output: "export" }
+    : {
+        async headers() {
+          return [
+            {
+              source: "/(.*)",
+              headers: securityHeaders,
+            },
+          ];
+        },
+      }),
 };
 
 export default nextConfig;

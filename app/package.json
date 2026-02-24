@@ -9,6 +9,7 @@
     "validate": "npm run lint && npm run type-check",
     "prebuild": "npm run validate",
     "build": "next build",
+    "build:static": "bash scripts/build-static.sh",
     "postbuild": "node scripts/validate-build.mjs",
     "start": "next start"
   },

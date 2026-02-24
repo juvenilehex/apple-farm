@@ -2,7 +2,10 @@ import type { Metadata } from "next";
 import Script from "next/script";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
+import "@/styles/polish.css";
 import Sidebar from "@/components/layout/Sidebar";
+import { ToastProvider } from "@/components/ui/Toast";
+import AnalyticsProvider from "@/components/analytics/AnalyticsProvider";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -44,12 +47,20 @@ export default function RootLayout({
             }}
           />
         )}
-        <Sidebar />
-        <main className="min-h-screen pt-12 lg:pt-0 lg:ml-[240px] pb-20 lg:pb-0">
-          <div className="mx-auto max-w-[1200px] px-4 py-6 sm:px-6 lg:px-8 lg:py-8">
-            {children}
-          </div>
-        </main>
+        {/* Skip-to-content — keyboard accessibility for screen readers & Tab navigation */}
+        <a href="#main-content" className="skip-to-content">
+          본문으로 건너뛰기
+        </a>
+        <AnalyticsProvider>
+          <ToastProvider>
+            <Sidebar />
+            <main id="main-content" className="min-h-screen pt-12 lg:pt-0 lg:ml-[240px] pb-20 lg:pb-0">
+              <div className="mx-auto max-w-[1200px] px-4 py-6 sm:px-6 lg:px-8 lg:py-8">
+                {children}
+              </div>
+            </main>
+          </ToastProvider>
+        </AnalyticsProvider>
       </body>
     </html>
   );

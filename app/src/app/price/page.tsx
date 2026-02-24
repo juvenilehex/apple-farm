@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { getVarietyNames, type PriceData } from '@/data/prices';
 import { usePriceApi } from '@/lib/hooks/usePriceApi';
 import dynamic from 'next/dynamic';
+import DataSources, { SOURCES } from '@/components/ui/DataSources';
 
 const PriceChart = dynamic(() => import('@/components/price/PriceChart'), { ssr: false });
 
@@ -178,6 +179,12 @@ export default function PricePage() {
           <p style={{ fontSize: 'var(--fs-sm)', color: 'var(--text-tertiary)' }}>시장가치가 높은 프리미엄 품종 확인</p>
         </Link>
       </div>
+
+      <DataSources
+        sources={[SOURCES.KAMIS]}
+        updatedAt="2024년"
+        note="경매가격은 aT 농산물유통정보(KAMIS) 기준. 농가 수취가는 수수료·운송비 차감 후 약 80~85% 수준."
+      />
     </div>
   );
 }

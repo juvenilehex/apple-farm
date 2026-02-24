@@ -3,6 +3,7 @@
 import { useState, useMemo } from 'react';
 import Link from 'next/link';
 import { appleRegions } from '@/data/regions';
+import DataSources, { SOURCES } from '@/components/ui/DataSources';
 import {
   getYearComparison, getWeeklySummaries,
   getNormalClimate, getConditionalTips, skyLabels, skyEmoji,
@@ -331,6 +332,12 @@ export default function WeatherPage() {
       <p style={{ fontSize: 'var(--fs-xs)', color: 'var(--text-muted)' }}>
         ※ 위 데이터는 30년 평년값 기반 시뮬레이션이며 실제 기상과 다릅니다.
       </p>
+
+      <DataSources
+        sources={[SOURCES.KMA]}
+        updatedAt="2024년"
+        note="백엔드 연동 시 초단기실황 + 단기예보 실시간 데이터로 전환됩니다."
+      />
     </div>
   );
 }

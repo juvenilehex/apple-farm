@@ -176,3 +176,60 @@ html[data-theme="light"] body {
   background: var(--glass-hover);
   border-color: rgba(255, 255, 255, 0.1);
 }
+
+/* ─── Focus states (accessibility — elderly-friendly, high visibility) ─── */
+:focus-visible {
+  outline: 2px solid var(--brand);
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+
+button:focus-visible,
+a:focus-visible,
+input:focus-visible,
+select:focus-visible,
+textarea:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+  box-shadow: 0 0 0 4px var(--accent-subtle);
+}
+
+/* ─── Smooth transitions (global) ─── */
+a, button {
+  transition: color 0.15s ease, background-color 0.15s ease, border-color 0.15s ease, opacity 0.15s ease, box-shadow 0.15s ease;
+}
+
+/* ─── Skip-to-content (keyboard accessibility) ─── */
+.skip-to-content {
+  position: absolute;
+  top: -100%;
+  left: 16px;
+  z-index: 200;
+  padding: 12px 24px;
+  border-radius: 8px;
+  font-size: var(--fs-base);
+  font-weight: 600;
+  color: white;
+  background: var(--brand);
+  text-decoration: none;
+  opacity: 0;
+  pointer-events: none;
+  transition: top 0.2s ease, opacity 0.2s ease;
+}
+
+.skip-to-content:focus {
+  top: 16px;
+  opacity: 1;
+  pointer-events: auto;
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
+/* ─── Reduced motion preference ─── */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}

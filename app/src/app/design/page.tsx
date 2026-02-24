@@ -5,6 +5,7 @@ import Link from 'next/link';
 import dynamic from 'next/dynamic';
 import { varieties } from '@/data/varieties';
 import { useDesignApi } from '@/lib/hooks/useDesignApi';
+import DataSources, { SOURCES } from '@/components/ui/DataSources';
 
 const FarmMap = dynamic(() => import('@/components/farm-design/FarmMap'), { ssr: false });
 
@@ -363,6 +364,12 @@ export default function DesignPage() {
           </div>
         </div>
       </div>
+
+      <DataSources
+        sources={[SOURCES.VWORLD, SOURCES.RDA]}
+        updatedAt="2024년"
+        note="재식거리는 농촌진흥청 권장 기준. 지적도는 국토부 브이월드 API."
+      />
     </div>
   );
 }
