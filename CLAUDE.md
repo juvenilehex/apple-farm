@@ -91,9 +91,12 @@ pj18_apple/
     └── core/              # 설정, DB, 공통 유틸
         ├── config.py          # pydantic-settings (.env)
         ├── database.py        # async SQLAlchemy
-        ├── enums.py           # CostCategory, AppleGrade, VarietyCategory
-        ├── feature_flags.py   # JSON 기반 피처 플래그
-        └── versioning.py      # 시스템 버전 + 변경이력
+        ├── enums.py               # CostCategory, AppleGrade, VarietyCategory
+        ├── feature_flags.py       # JSON 기반 피처 플래그
+        ├── versioning.py          # 시스템 버전 + 변경이력
+        ├── evolution_engine.py    # 피드백 기반 파라미터 자동 보정
+        ├── experiment.py          # A/B 실험 프레임워크
+        └── migration_manager.py   # 설정 스키마 자동 마이그레이션
 ```
 
 ---
@@ -107,7 +110,7 @@ pj18_apple/
 |------|------|------|
 | 워크플로우 | 4/5 🟢 | 밭설계→시뮬레이션→3시나리오 비교→추천 워크플로우 완성 (2026.02.24) |
 | 품질루프 | 4/5 🟢 | 가정 투명화 + 검증기 + 피드백 + 데이터 품질 스코어링 (2026.02.24) |
-| 진화 | 3/5 🟡 | 피처 플래그 + 버전관리 + 변경이력 + API 버전 (2026.02.24) |
+| 진화 | 5/5 🟢 | 자가진화엔진 + A/B실험 + 마이그레이션 + 피처플래그 + 버전관리 (2026.02.24) |
 | 지식구조 | 4/5 ⚠️ | 공공데이터 7개 API + Enum 중앙화 (2026.02.23) |
 | 자율성 | 3/5 🟡 | Lv3, 자동 갱신 + 적응형 스케줄러 + 이상감지 + 헬스모니터 (2026.02.24) |
 | 학습순환 | 4/5 🟢 | Clarity + Analytics + 피드백→개선 파이프라인 + 사용패턴 분석 (2026.02.24) |
@@ -117,7 +120,8 @@ pj18_apple/
 **✅ 가정 투명화 (2026.02.23)**: `docs/SIMULATION_ASSUMPTIONS.md` — 모든 시뮬레이션 가정·한계·검증상태
 **✅ 실행 분석 (2026.02.23)**: `services/simulation_analytics.py` — 링버퍼 기반 품종별/면적별/ROI 통계 + GET /analytics
 **✅ 공공데이터 자동 갱신 (2026.02.24)**: `services/data_refresher.py` — 기상청 3h + KAMIS 6h 자동 갱신, JSONL 로그, lifespan 스케줄러 + CLI
-**✅ 자가진화 (2026.02.24)**: 6개 렌즈 전체 개선 — 피처플래그, 이상감지, 3시나리오 비교, 데이터품질, 사용패턴 분석
+**✅ 자가진화 v1 (2026.02.24)**: 6개 렌즈 전체 개선 — 피처플래그, 이상감지, 3시나리오 비교, 데이터품질, 사용패턴 분석
+**✅ 자가진화 v2 (2026.02.24)**: 진화 렌즈 5/5 — 자가튜닝엔진(evolution_engine), A/B실험(experiment), 스키마마이그레이션(migration_manager)
 **최우선 과제**: 실제 농가 데이터와 시뮬레이션 교차 검증 (KAMIS API 연동)
 **Phase 2 준비**: Clarity 데이터 분석 → 60대 타겟 UI 어디서 막히는지 추적
 

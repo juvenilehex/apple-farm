@@ -7,10 +7,22 @@ from __future__ import annotations
 from datetime import datetime
 
 # 시맨틱 버저닝: MAJOR.MINOR.PATCH
-VERSION = "0.3.0"
+VERSION = "0.4.0"
 
 # 릴리스 이력 (최근 → 과거)
 CHANGELOG: list[dict] = [
+    {
+        "version": "0.4.0",
+        "date": "2026-02-24",
+        "changes": [
+            "자가 진화 엔진 (evolution_engine) — 피드백 기반 파라미터 자동 보정",
+            "A/B 실험 프레임워크 (experiment) — 알고리즘 비교 + 자동 결론",
+            "설정 마이그레이션 관리자 (migration_manager) — 무중단 스키마 진화",
+            "진화 API: /evolution/status, /evolve, /rollback",
+            "실험 API: /experiments, /experiments/{id}/record",
+            "마이그레이션 API: /migration/status, /migration/run",
+        ],
+    },
     {
         "version": "0.3.0",
         "date": "2026-02-24",

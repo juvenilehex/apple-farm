@@ -16,6 +16,9 @@ from services.anomaly_detector import get_anomaly_detector
 from services.health_monitor import get_health_monitor
 from services.data_quality import get_data_quality_scorer
 from services.usage_analytics import get_usage_analytics
+from core.evolution_engine import get_evolution_engine
+from core.experiment import get_experiment_manager
+from core.migration_manager import get_migration_manager
 
 logger = logging.getLogger(__name__)
 
@@ -176,3 +179,62 @@ async def data_quality_score():
 async def usage_analytics():
     """사용 패턴 분석 + 자동 개선 제안."""
     return get_usage_analytics().analyze()
+
+
+# ---------------------------------------------------------------------------
+# Evolution Engine (진화 렌즈 L5: 자가 진화)
+# ---------------------------------------------------------------------------
+
+@app.get("/api/evolution/status")
+async def evolution_status():
+    """진화 엔진 상태 (세대, 보정 계수, 이력)."""
+    return get_evolution_engine().get_status()
+
+
+@app.post("/api/evolution/evolve")
+async def trigger_evolution():
+    """진화 사이클 1회 실행 (피드백 기반 파라미터 자동 보정)."""
+    return get_evolution_engine().evolve()
+
+
+@app.post("/api/evolution/rollback")
+async def evolution_rollback():
+    """마지막 진화를 되돌린다."""
+    return get_evolution_engine().rollback()
+
+
+# ---------------------------------------------------------------------------
+# Experiments (진화 렌즈 L5: A/B 실험)
+# ---------------------------------------------------------------------------
+
+@app.get("/api/experiments")
+async def list_experiments():
+    """전체 실험 목록."""
+    return get_experiment_manager().list_all()
+
+
+@app.post("/api/experiments/{experiment_id}/record")
+async def record_experiment(experiment_id: str, session_key: str,
+                            satisfied: bool):
+    """실험 결과 기록 + 자동 결론 체크."""
+    return get_experiment_manager().record_and_check(
+        experiment_id=experiment_id,
+        session_key=session_key,
+        satisfied=satisfied,
+    )
+
+
+# ---------------------------------------------------------------------------
+# Migration (진화 렌즈 L5: 스키마 마이그레이션)
+# ---------------------------------------------------------------------------
+
+@app.get("/api/migration/status")
+async def migration_status():
+    """마이그레이션 상태."""
+    return get_migration_manager().get_status()
+
+
+@app.post("/api/migration/run")
+async def run_migration():
+    """전체 데이터 파일 마이그레이션 실행."""
+    return get_migration_manager().migrate_all()

@@ -73,3 +73,66 @@ def test_usage_analytics(client):
     assert res.status_code == 200
     data = res.json()
     assert data["status"] in ("analyzed", "insufficient_data")
+
+
+# ---------------------------------------------------------------------------
+# 진화 렌즈 L5 테스트
+# ---------------------------------------------------------------------------
+
+def test_evolution_status(client):
+    """진화 엔진 상태 조회."""
+    res = client.get("/api/evolution/status")
+    assert res.status_code == 200
+    data = res.json()
+    assert "generation" in data
+    assert "modifiers" in data
+    assert isinstance(data["generation"], int)
+
+
+def test_evolution_evolve(client):
+    """진화 사이클 실행 (데이터 부족 시 스킵)."""
+    res = client.post("/api/evolution/evolve")
+    assert res.status_code == 200
+    data = res.json()
+    assert "evolved" in data
+    assert "generation" in data
+
+
+def test_evolution_rollback(client):
+    """진화 롤백."""
+    res = client.post("/api/evolution/rollback")
+    assert res.status_code == 200
+    data = res.json()
+    assert "rolled_back" in data
+
+
+def test_experiments_list(client):
+    """실험 목록 조회."""
+    res = client.get("/api/experiments")
+    assert res.status_code == 200
+    data = res.json()
+    assert isinstance(data, list)
+    assert len(data) >= 1  # 기본 실험 최소 1개
+    assert data[0]["id"] == "sim_refine_v1"
+
+
+def test_experiment_record(client):
+    """실험 결과 기록."""
+    res = client.post(
+        "/api/experiments/sim_refine_v1/record",
+        params={"session_key": "test-session-1", "satisfied": True},
+    )
+    assert res.status_code == 200
+    data = res.json()
+    assert data["recorded"] is True
+    assert data["group"] in ("control", "variant")
+
+
+def test_migration_status(client):
+    """마이그레이션 상태 조회."""
+    res = client.get("/api/migration/status")
+    assert res.status_code == 200
+    data = res.json()
+    assert "latest_schema_version" in data
+    assert "migrations" in data
+    assert len(data["migrations"]) >= 1
