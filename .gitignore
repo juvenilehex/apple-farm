@@ -28,3 +28,9 @@ out/
 *.pem
 .vercel
 .pytest_cache/
+
+# Claude Code local settings
+.claude/
+
+# Backend runtime data (logs, feedback, analytics)
+backend/data/

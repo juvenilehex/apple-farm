@@ -4,9 +4,13 @@
   "private": true,
   "scripts": {
     "dev": "next dev",
+    "type-check": "tsc --noEmit",
+    "lint": "eslint",
+    "validate": "npm run lint && npm run type-check",
+    "prebuild": "npm run validate",
     "build": "next build",
-    "start": "next start",
-    "lint": "eslint"
+    "postbuild": "node scripts/validate-build.mjs",
+    "start": "next start"
   },
   "dependencies": {
     "@turf/turf": "^7.3.4",
