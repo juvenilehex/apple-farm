@@ -4,9 +4,10 @@ from fastapi import APIRouter
 
 from schemas.simulation import (
     SimulationRequest, SimulationResponse, AnalyticsContext,
+    CompareRequest, CompareResponse,
     FeedbackRequest, FeedbackStats,
 )
-from services.simulation import simulate
+from services.simulation import simulate, compare_scenarios
 from services.simulation_analytics import get_analytics
 from services.simulation_feedback import get_feedback_collector
 from services.simulation_validator import validate_simulation, suggest_refinement
@@ -65,6 +66,16 @@ async def run_simulation(req: SimulationRequest):
         pass
 
     return result
+
+
+@router.post("/compare", response_model=CompareResponse)
+async def compare_simulation(req: CompareRequest):
+    """낙관/중립/비관 3시나리오 비교 (워크플로우 렌즈 L4)"""
+    return compare_scenarios(
+        variety=req.variety,
+        area_pyeong=req.area_pyeong,
+        projection_years=req.projection_years,
+    )
 
 
 @router.get("/analytics")

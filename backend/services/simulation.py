@@ -220,3 +220,93 @@ def simulate(req: SimulationRequest) -> SimulationResponse:
         break_even_year=break_even_year,
         roi_10year=round(roi_10year, 2),
     )
+
+
+# ---------------------------------------------------------------------------
+# 다중 시나리오 비교 (워크플로우 렌즈 L4)
+# ---------------------------------------------------------------------------
+
+# 시나리오별 보정 계수
+_SCENARIO_MODIFIERS = {
+    "optimistic":  {"yield": 1.15, "price": 1.20, "label": "낙관"},
+    "neutral":     {"yield": 1.00, "price": 1.00, "label": "중립"},
+    "pessimistic": {"yield": 0.80, "price": 0.75, "label": "비관"},
+}
+
+
+def compare_scenarios(
+    variety: str,
+    area_pyeong: float,
+    projection_years: int = 10,
+) -> dict:
+    """낙관/중립/비관 3시나리오 비교.
+
+    각 시나리오별로 수확량·가격을 보정하여 시뮬레이션을 돌리고,
+    결과를 요약·비교하여 종합 추천을 생성한다.
+    """
+    from schemas.simulation import CompareResponse, ScenarioResult
+
+    scenario_data = SCENARIOS.get(variety, SCENARIOS["후지"])
+    base_yield = scenario_data["yield_per_10a"]
+    base_price = scenario_data["price_per_kg"]
+
+    results: list[ScenarioResult] = []
+
+    for key, mod in _SCENARIO_MODIFIERS.items():
+        req = SimulationRequest(
+            variety=variety,
+            area_pyeong=area_pyeong,
+            yield_per_10a=base_yield * mod["yield"],
+            price_per_kg=base_price * mod["price"],
+            projection_years=projection_years,
+        )
+        res = simulate(req)
+        total_10y = sum(p.profit for p in res.yearly_projections)
+
+        results.append(ScenarioResult(
+            scenario=key,
+            label=mod["label"],
+            yield_per_10a=res.yield_per_10a,
+            price_per_kg=res.price_per_kg,
+            annual_revenue=res.annual_revenue,
+            annual_cost=res.annual_cost,
+            annual_profit=res.annual_profit,
+            income_ratio=res.income_ratio,
+            break_even_year=res.break_even_year,
+            roi_10year=res.roi_10year,
+            total_10year_profit=total_10y,
+        ))
+
+    # 종합 추천 메시지 생성
+    neutral = results[1]
+    pessimistic = results[2]
+    recommendation = _build_recommendation(variety, neutral, pessimistic)
+
+    return CompareResponse(
+        variety=variety,
+        area_pyeong=area_pyeong,
+        scenarios=results,
+        recommendation=recommendation,
+    )
+
+
+def _build_recommendation(variety: str, neutral: "ScenarioResult",
+                          pessimistic: "ScenarioResult") -> str:
+    """시나리오 비교 결과로 종합 추천 메시지를 생성한다."""
+    parts = []
+
+    if pessimistic.annual_profit > 0:
+        parts.append(f"{variety}은(는) 비관적 시나리오에서도 흑자가 예상됩니다. 안정적인 선택입니다.")
+    elif neutral.annual_profit > 0:
+        parts.append(f"{variety}은(는) 중립 시나리오에서 흑자이나, 시장 하락 시 적자 가능성이 있습니다.")
+    else:
+        parts.append(f"{variety}은(는) 중립 시나리오에서도 적자가 예상됩니다. 신중한 검토가 필요합니다.")
+
+    if neutral.break_even_year <= 5:
+        parts.append(f"손익분기까지 약 {neutral.break_even_year}년으로 빠른 편입니다.")
+    elif neutral.break_even_year <= 8:
+        parts.append(f"손익분기까지 약 {neutral.break_even_year}년이 소요될 수 있습니다.")
+    else:
+        parts.append(f"손익분기까지 {neutral.break_even_year}년 이상 걸릴 수 있어 장기적 관점이 필요합니다.")
+
+    return " ".join(parts)

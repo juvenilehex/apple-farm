@@ -86,3 +86,37 @@ class SimulationResponse(BaseModel):
     analytics_context: AnalyticsContext | None = None
     validation_notes: list[ValidationNote] | None = None
     refined: bool = False
+
+
+# ---------------------------------------------------------------------------
+# 다중 시나리오 비교 (워크플로우 렌즈 L4)
+# ---------------------------------------------------------------------------
+
+class CompareRequest(BaseModel):
+    """다중 시나리오 비교 요청."""
+    variety: str
+    area_pyeong: float
+    projection_years: int = 10
+
+
+class ScenarioResult(BaseModel):
+    """시나리오 하나의 요약 결과."""
+    scenario: str  # "optimistic" | "neutral" | "pessimistic"
+    label: str     # "낙관" | "중립" | "비관"
+    yield_per_10a: float
+    price_per_kg: float
+    annual_revenue: int
+    annual_cost: int
+    annual_profit: int
+    income_ratio: float
+    break_even_year: int
+    roi_10year: float
+    total_10year_profit: int
+
+
+class CompareResponse(BaseModel):
+    """다중 시나리오 비교 응답."""
+    variety: str
+    area_pyeong: float
+    scenarios: list[ScenarioResult]
+    recommendation: str  # 종합 추천 메시지

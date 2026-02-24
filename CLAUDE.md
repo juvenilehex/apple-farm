@@ -73,17 +73,27 @@ pj18_apple/
     │   └── variety.py     # POST /api/variety/recommend
     ├── schemas/           # Pydantic 스키마 (7개)
     ├── services/          # 비즈니스 로직
-    │   ├── orchard.py     # 밭 설계 계산
-    │   ├── simulation.py  # 수익 시뮬레이션 (10년 추이)
-    │   ├── variety.py     # 품종 추천 (지역/우선순위 기반)
-    │   └── data_refresher.py  # 공공데이터 자동 갱신 (날씨 3h, 가격 6h)
-    ├── data/              # 런타임 데이터
-    │   └── refresh_log.jsonl  # 갱신 이력 (append-only JSONL)
+    │   ├── orchard.py             # 밭 설계 계산
+    │   ├── simulation.py          # 수익 시뮬레이션 + 3시나리오 비교
+    │   ├── variety.py             # 품종 추천 (지역/우선순위 기반)
+    │   ├── data_refresher.py      # 공공데이터 자동 갱신 (날씨 3h, 가격 6h)
+    │   ├── adaptive_scheduler.py  # ML 기반 갱신 간격 자율 조절
+    │   ├── simulation_analytics.py # 링버퍼 기반 실행 통계
+    │   ├── simulation_validator.py # 자가검증 + self-refine loop
+    │   ├── simulation_feedback.py  # 사용자 피드백 수집
+    │   ├── anomaly_detector.py    # 가격/날씨 이상 감지
+    │   ├── health_monitor.py      # 시스템 자가 진단
+    │   ├── data_quality.py        # 데이터 품질 스코어링
+    │   └── usage_analytics.py     # 사용 패턴 → 개선 파이프라인
+    ├── data/              # 런타임 데이터 (.gitignore)
     ├── models/            # DB 모델 (SQLAlchemy)
     │   └── base.py        # PriceHistory, WeatherCache, OrchardPlan
     └── core/              # 설정, DB, 공통 유틸
-        ├── config.py      # pydantic-settings (.env)
-        └── database.py    # async SQLAlchemy
+        ├── config.py          # pydantic-settings (.env)
+        ├── database.py        # async SQLAlchemy
+        ├── enums.py           # CostCategory, AppleGrade, VarietyCategory
+        ├── feature_flags.py   # JSON 기반 피처 플래그
+        └── versioning.py      # 시스템 버전 + 변경이력
 ```
 
 ---
@@ -95,18 +105,19 @@ pj18_apple/
 
 | 렌즈 | 점수 | 핵심 |
 |------|------|------|
-| 워크플로우 | 3/5 ⚠️ | 밭설계→시뮬레이션 흐름 있음, AI 워크플로우 미도입 |
-| 품질루프 | 3/5 🟡 | 가정 투명화 + SimulationAnalytics 실행 분석 (2026.02.23) |
-| 진화 | 1/5 ❌ | Phase 1 초기 단계 |
-| 지식구조 | 4/5 ⚠️ | 공공데이터 7개 API + CostCategory/AppleGrade/VarietyCategory Enum 중앙화 (2026.02.23) |
-| 자율성 | 2/5 | Lv2, 공공데이터 자동 갱신 (날씨 3h, 가격 6h) + 수동 트리거 (2026.02.24) |
-| 학습순환 | 3/5 🟡 | Clarity + SimulationAnalytics (품종별 인기도/ROI/손익분기 추적) |
+| 워크플로우 | 4/5 🟢 | 밭설계→시뮬레이션→3시나리오 비교→추천 워크플로우 완성 (2026.02.24) |
+| 품질루프 | 4/5 🟢 | 가정 투명화 + 검증기 + 피드백 + 데이터 품질 스코어링 (2026.02.24) |
+| 진화 | 3/5 🟡 | 피처 플래그 + 버전관리 + 변경이력 + API 버전 (2026.02.24) |
+| 지식구조 | 4/5 ⚠️ | 공공데이터 7개 API + Enum 중앙화 (2026.02.23) |
+| 자율성 | 3/5 🟡 | Lv3, 자동 갱신 + 적응형 스케줄러 + 이상감지 + 헬스모니터 (2026.02.24) |
+| 학습순환 | 4/5 🟢 | Clarity + Analytics + 피드백→개선 파이프라인 + 사용패턴 분석 (2026.02.24) |
 
 **✅ Clarity 추가 (2026.02.22)**: layout.tsx에 Microsoft Clarity 삽입, NEXT_PUBLIC_CLARITY_ID 환경변수
 **✅ Enum 중앙화 (2026.02.23)**: `backend/core/enums.py` — CostCategory, AppleGrade, VarietyCategory
 **✅ 가정 투명화 (2026.02.23)**: `docs/SIMULATION_ASSUMPTIONS.md` — 모든 시뮬레이션 가정·한계·검증상태
 **✅ 실행 분석 (2026.02.23)**: `services/simulation_analytics.py` — 링버퍼 기반 품종별/면적별/ROI 통계 + GET /analytics
 **✅ 공공데이터 자동 갱신 (2026.02.24)**: `services/data_refresher.py` — 기상청 3h + KAMIS 6h 자동 갱신, JSONL 로그, lifespan 스케줄러 + CLI
+**✅ 자가진화 (2026.02.24)**: 6개 렌즈 전체 개선 — 피처플래그, 이상감지, 3시나리오 비교, 데이터품질, 사용패턴 분석
 **최우선 과제**: 실제 농가 데이터와 시뮬레이션 교차 검증 (KAMIS API 연동)
 **Phase 2 준비**: Clarity 데이터 분석 → 60대 타겟 UI 어디서 막히는지 추적
 
