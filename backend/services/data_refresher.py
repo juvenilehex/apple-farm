@@ -233,9 +233,9 @@ class DataRefresher:
             logger.debug("data_portal_api_key 미설정 — 날씨 예보 스킵")
             return []
 
+        from api.weather import _calc_forecast_base_time
         now = datetime.now()
-        base_date = now.strftime("%Y%m%d")
-        base_time = "0500"
+        base_date, base_time = _calc_forecast_base_time(now)
 
         params = {
             "serviceKey": settings.data_portal_api_key,

@@ -63,15 +63,16 @@ pj18_apple/
 └── backend/               # Python FastAPI 백엔드
     ├── main.py            # FastAPI 엔트리포인트
     ├── requirements.txt   # Python 의존성
-    ├── api/               # API 라우터 (7개)
-    │   ├── weather.py     # 기상청 API (mock 폴백)
-    │   ├── price.py       # KAMIS 경매가 (mock 폴백)
+    ├── api/               # API 라우터 (8개)
+    │   ├── weather.py     # 기상청 API (실연동 + mock 폴백)
+    │   ├── price.py       # KAMIS 경매가 (실연동 + mock 폴백)
     │   ├── land.py        # 브이월드 지적도 + GET /parcel (지번 경계)
     │   ├── statistics.py  # 생산통계/벤치마크
     │   ├── orchard.py     # POST /api/orchard/design
     │   ├── simulation.py  # POST /api/simulation/run
-    │   └── variety.py     # POST /api/variety/recommend
-    ├── schemas/           # Pydantic 스키마 (7개)
+    │   ├── variety.py     # POST /api/variety/recommend
+    │   └── grading.py     # GET /api/grading/region/{id}, /api/grading/all
+    ├── schemas/           # Pydantic 스키마 (8개)
     ├── services/          # 비즈니스 로직
     │   ├── orchard.py             # 밭 설계 계산
     │   ├── simulation.py          # 수익 시뮬레이션 + 3시나리오 비교
@@ -84,7 +85,8 @@ pj18_apple/
     │   ├── anomaly_detector.py    # 가격/날씨 이상 감지
     │   ├── health_monitor.py      # 시스템 자가 진단
     │   ├── data_quality.py        # 데이터 품질 스코어링
-    │   └── usage_analytics.py     # 사용 패턴 → 개선 파이프라인
+    │   ├── usage_analytics.py     # 사용 패턴 → 개선 파이프라인
+    │   └── grading.py             # 급지 시스템 (기후 5팩터 S/A/B/C)
     ├── data/              # 런타임 데이터 (.gitignore)
     ├── models/            # DB 모델 (SQLAlchemy)
     │   └── base.py        # PriceHistory, WeatherCache, OrchardPlan
@@ -124,24 +126,25 @@ pj18_apple/
 **✅ 자가진화 v2 (2026.02.24)**: 진화 렌즈 5/5 — 자가튜닝엔진(evolution_engine), A/B실험(experiment), 스키마마이그레이션(migration_manager)
 **✅ 설계 딥다이브 (2026.02.25)**: 대목4종+장비4종+이격규정+관수시설 스펙, 지번 자동 경계(GET /api/land/parcel), 설계 UI 4단계 확장
 **✅ orchard API 동기화 (2026.02.25)**: rootstockId/machineId/setback 백엔드 반영 + 설계→시뮬레이션 자동 전달 (query params)
+**✅ 단기 로드맵 일괄 구현 (2026.02.26)**: pydantic v2 전환, 테스트 47/47 통과, 기상청 base_time 동적화, 프론트엔드 빌드 수정, 급지 시스템 v1 (5팩터 10개 주산지)
 
 ### API 키 현황
 | 서비스 | 상태 | 비고 |
 |--------|------|------|
 | data.go.kr (단기예보+ASOS+중기예보) | ✅ 발급완료 | 키 1개로 3개 API 모두 사용 |
 | KOSIS 통계청 | ✅ 발급완료 | Base64 인코딩 |
-| KAMIS 농산물유통 | ⏳ 승인대기 | 승인 후 .env에 추가 |
-| 브이월드 | ❌ 미신청 | 중기에 신청 예정 |
+| KAMIS 농산물유통 | ✅ 승인완료 | API-ID: 7256, .env에 추가 필요 |
+| 브이월드 | ✅ 발급완료 | 개발키, 만료 2026-08-26 (6개월, 3회 연장 가능) |
 
 ### 로드맵 (2026-02-25 확정)
 
-**단기 (1~2주) — Phase 1 MVP 마무리**
-- 실패 테스트 3개 수정 (test_data_quality, weather_mock x2)
-- 프론트엔드 빌드 확인 + Cloudflare Pages 배포
-- 기상청 API 실제 연동 (키 발급 완료)
-- KAMIS API 연동 (승인 대기)
-- PostgreSQL 설정
-- 급지 시스템 v1 (기후 기반 S/A/B/C)
+**단기 (1~2주) — Phase 1 MVP 마무리** ✅ 완료 (2026-02-26)
+- ✅ pydantic v2 전환 + 테스트 47/47 통과
+- ✅ 프론트엔드 빌드 수정 (design/page.tsx TypeScript 에러 해결)
+- ✅ 기상청 API 실연동 (base_time 동적 계산)
+- ✅ KAMIS API 연동 (코드 완료, .env 키 설정만 필요)
+- ⏭️ PostgreSQL 설정 → 중기로 연기 (현재 in-memory/API로 MVP 동작)
+- ✅ 급지 시스템 v1 (기후 5팩터 S/A/B/C, 10개 주산지)
 
 **중기 (1~3개월) — Phase 2 데이터 고도화**
 - 브이월드 API 신청 + 실제 지번 연동
@@ -194,7 +197,7 @@ python -m services.data_refresher --prices    # 가격만
 - **lifespan 통합**: FastAPI lifespan 에서 시작/종료 관리
 
 <!-- PJ00_SESSION_STATE_START -->
-## 세션 복원 (PJ00 자동 업데이트: 2026-02-25 04:18)
+## 세션 복원 (PJ00 자동 업데이트: 2026-02-27 00:07)
 
 최근 작업 없음. 새 작업을 시작하세요.
 <!-- PJ00_SESSION_STATE_END -->

@@ -36,6 +36,14 @@ class VarietyCategory(str, Enum):
     VERY_LATE = "very-late"  # 극만생종 (11월~)
 
 
+class OrchardGrade(str, Enum):
+    """과수원 입지 급지 (기후 기반)"""
+    S = "S"  # 최적지 (90~100점)
+    A = "A"  # 적지 (75~89점)
+    B = "B"  # 보통 (60~74점)
+    C = "C"  # 비적지 (60점 미만)
+
+
 class TaxonomyUsageTracker:
     """L4=5: Enum 사용 빈도 추적 → 택소노미 자동 진화 제안.
 

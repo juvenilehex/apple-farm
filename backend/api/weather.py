@@ -10,6 +10,36 @@ router = APIRouter(prefix="/api/weather", tags=["weather"])
 
 KMA_BASE = "http://apis.data.go.kr/1360000/VilageFcstInfoService_2.0"
 
+# 단기예보 발표시각 (KMA 기준)
+_FORECAST_PUBLISH_HOURS = [2, 5, 8, 11, 14, 17, 20, 23]
+
+
+def _calc_forecast_base_time(now) -> tuple[str, str]:
+    """현재 시각 기준 가장 최근 단기예보 발표시각 반환.
+
+    발표 후 약 10분 뒤 API 제공 → hour+0:10 이전이면 이전 발표시각 사용.
+    Returns: (base_date, base_time)
+    """
+    from datetime import timedelta
+
+    current_minutes = now.hour * 60 + now.minute
+    chosen = None
+    for h in reversed(_FORECAST_PUBLISH_HOURS):
+        if current_minutes >= h * 60 + 10:
+            chosen = h
+            break
+
+    if chosen is not None:
+        base_date = now.strftime("%Y%m%d")
+        base_time = f"{chosen:02d}00"
+    else:
+        # 자정~02:10 → 전날 23시 발표 사용
+        yesterday = now - timedelta(days=1)
+        base_date = yesterday.strftime("%Y%m%d")
+        base_time = "2300"
+
+    return base_date, base_time
+
 
 def _mock_current(region_id: str, date: str) -> WeatherResponse:
     """API 키 없을 때 반환할 mock 날씨 데이터."""
@@ -72,17 +102,18 @@ async def get_current_weather(region_id: str = Query(...), nx: int = Query(...),
 
 def _parse_current(items: list, region_id: str, date: str) -> WeatherResponse:
     values = {item["category"]: float(item["obsrValue"]) for item in items}
+    current = values.get("T1H", 0)
     return WeatherResponse(
         region_id=region_id,
         date=date,
         temperature=Temperature(
-            min=values.get("T1H", 0) - 3,
-            max=values.get("T1H", 0) + 5,
-            current=values.get("T1H", 0),
+            min=round(current - 3, 1),
+            max=round(current + 5, 1),
+            current=round(current, 1),
         ),
-        humidity=values.get("REH", 0),
-        rainfall=values.get("RN1", 0),
-        wind=values.get("WSD", 0),
+        humidity=round(values.get("REH", 0), 1),
+        rainfall=round(values.get("RN1", 0), 1),
+        wind=round(values.get("WSD", 0), 1),
         sky="clear",
         alerts=[],
     )
@@ -96,12 +127,11 @@ async def get_forecast(region_id: str = Query(...), nx: int = Query(...), ny: in
         return _mock_forecast(region_id)
 
     now = datetime.now()
-    base_date = now.strftime("%Y%m%d")
-    base_time = "0500"  # 단기예보는 02, 05, 08, 11, 14, 17, 20, 23시 발표
+    base_date, base_time = _calc_forecast_base_time(now)
 
     params = {
         "serviceKey": settings.data_portal_api_key,
-        "numOfRows": "300",
+        "numOfRows": "1000",
         "pageNo": "1",
         "dataType": "JSON",
         "base_date": base_date,
@@ -114,33 +144,56 @@ async def get_forecast(region_id: str = Query(...), nx: int = Query(...), ny: in
             resp = await client.get(f"{KMA_BASE}/getVilageFcst", params=params)
             data = resp.json()
         items = data.get("response", {}).get("body", {}).get("items", {}).get("item", [])
-        forecasts = _parse_forecast(items)
+        today = now.strftime("%Y%m%d")
+        forecasts = _parse_forecast(items, exclude_date=today)
         return ForecastResponse(region_id=region_id, forecasts=forecasts)
     except Exception as e:
         logger.warning("기상청 예보 API 호출 실패, mock 데이터 반환: %s", e)
         return _mock_forecast(region_id)
 
-def _parse_forecast(items: list) -> list[ForecastItem]:
+def _parse_forecast(items: list, exclude_date: str | None = None) -> list[ForecastItem]:
+    """예보 아이템 파싱. TMP 시간별 기온을 TMN/TMX 폴백으로 사용."""
     from collections import defaultdict
-    daily: dict[str, dict] = defaultdict(lambda: {"TMN": 0, "TMX": 0, "SKY": "1", "PCP": "0", "POP": "0"})
+
+    daily: dict[str, dict] = defaultdict(lambda: {
+        "TMN": None, "TMX": None, "SKY": "1", "PCP": "0", "POP": "0",
+        "_temps": [],  # TMP 시간별 기온 수집 (TMN/TMX 폴백용)
+    })
     for item in items:
         date = item.get("fcstDate", "")
         cat = item.get("category", "")
         val = item.get("fcstValue", "0")
         if cat in ("TMN", "TMX", "SKY", "PCP", "POP"):
             daily[date][cat] = val
+        elif cat == "TMP":
+            try:
+                daily[date]["_temps"].append(float(val))
+            except (ValueError, TypeError):
+                pass
 
     sky_map = {"1": "clear", "3": "cloudy", "4": "overcast"}
     result = []
     for date, vals in sorted(daily.items()):
+        if exclude_date and date == exclude_date:
+            continue
+
+        # TMN/TMX가 없으면 TMP min/max로 대체
+        temps = vals["_temps"]
+        tmn = vals["TMN"]
+        tmx = vals["TMX"]
+        temp_min = float(tmn) if tmn is not None else (min(temps) if temps else 0.0)
+        temp_max = float(tmx) if tmx is not None else (max(temps) if temps else 0.0)
+
         pcp = vals["PCP"]
-        rainfall = 0.0 if pcp in ("강수없음", "0") else float(pcp.replace("mm", "").replace("~", "").split("미만")[0] or "0")
+        rainfall = 0.0 if pcp in ("강수없음", "0") else float(
+            pcp.replace("mm", "").replace("~", "").split("미만")[0] or "0"
+        )
         result.append(ForecastItem(
             date=date,
-            temp_min=float(vals.get("TMN", 0)),
-            temp_max=float(vals.get("TMX", 0)),
+            temp_min=round(temp_min, 1),
+            temp_max=round(temp_max, 1),
             sky=sky_map.get(str(vals.get("SKY", "1")), "clear"),
             rainfall=rainfall,
             pop=float(vals.get("POP", 0)),
         ))
-    return result
+    return result[:3]  # 최대 3일

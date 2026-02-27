@@ -66,6 +66,20 @@ _REGION_OFFSET: dict[str, float] = {
     "yesan": 1.2,
 }
 
+# 지역별 강수량 보정비율 (영주 대비, 기상청 ASOS 10년 평년값 기반)
+_REGION_RAIN_RATIO: dict[str, float] = {
+    "yeongju": 1.00,     # 1,135mm (기준)
+    "andong": 0.92,      # 1,044mm (내륙 건조)
+    "yeongcheon": 0.95,  # 1,078mm
+    "cheongsong": 1.05,  # 1,192mm (산간 다우)
+    "mungyeong": 1.08,   # 1,226mm
+    "chungju": 1.10,     # 1,249mm
+    "jecheon": 1.15,     # 1,305mm (충북 산간)
+    "geochang": 1.20,    # 1,362mm (경남 산간 다우)
+    "jangsu": 1.25,      # 1,419mm (전북 산간 최다)
+    "yesan": 1.12,       # 1,271mm (충남)
+}
+
 
 def _get_cache_path(stn_id: int, year: int) -> Path:
     return CACHE_DIR / f"asos_{stn_id}_{year}.json"
@@ -253,12 +267,13 @@ class ClimateCollector:
     def get_climate_normals(self, region_id: str) -> list[dict]:
         """10년 월별 기후 평년값."""
         offset = _REGION_OFFSET.get(region_id, 0.0)
+        rain_ratio = _REGION_RAIN_RATIO.get(region_id, 1.0)
         return [
             {
                 "month": n["month"],
                 "min_ta": round(n["min_ta"] + offset, 1),
                 "max_ta": round(n["max_ta"] + offset, 1),
-                "rainfall": n["rainfall"],
+                "rainfall": round(n["rainfall"] * rain_ratio),
             }
             for n in _BASE_NORMALS
         ]

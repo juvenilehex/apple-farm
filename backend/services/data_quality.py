@@ -13,7 +13,7 @@ from __future__ import annotations
 
 import json
 import logging
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from pathlib import Path
 from typing import Any
 
@@ -133,7 +133,11 @@ class DataQualityScorer:
         if not last_success:
             return 0.0
 
-        age = datetime.now() - last_success
+        # naive/aware 호환: 둘 다 UTC 기준으로 통일
+        now = datetime.now(timezone.utc)
+        if last_success.tzinfo is None:
+            last_success = last_success.replace(tzinfo=timezone.utc)
+        age = now - last_success
         max_age = timedelta(hours=max_hours)
         if age <= max_age:
             return 100.0

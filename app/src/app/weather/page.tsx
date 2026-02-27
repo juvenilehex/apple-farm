@@ -77,15 +77,23 @@ export default function WeatherPage() {
               <h2 className="font-semibold" style={{ fontSize: 'var(--fs-xl)', color: 'var(--text-primary)' }}>{region.name}</h2>
               <p style={{ fontSize: 'var(--fs-sm)', color: 'var(--text-tertiary)' }}>{region.province} · {region.altitude} · {region.area}</p>
             </div>
-            <span className="text-4xl">{skyEmoji[weather.sky]}</span>
+            <span className="text-4xl" role="img" aria-label={skyLabels[weather.sky]}>{skyEmoji[weather.sky]}</span>
           </div>
 
+          {loading ? (
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-5 animate-pulse">
+              {[1,2,3,4].map(i => (
+                <div key={i} className="rounded-lg p-3 h-16" style={{ background: 'var(--surface-tertiary)' }} />
+              ))}
+            </div>
+          ) : (
           <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-5">
             <Metric label="현재" value={`${weather.temperature.current}°C`} />
             <Metric label="최저 / 최고" value={`${weather.temperature.min}° / ${weather.temperature.max}°`} />
             <Metric label="습도" value={`${weather.humidity}%`} />
             <Metric label="풍속" value={`${weather.wind}m/s`} />
           </div>
+          )}
 
           {/* Comparison with normal */}
           <div className="rounded-lg p-4" style={{ background: 'var(--surface-tertiary)' }}>
@@ -173,7 +181,7 @@ export default function WeatherPage() {
           <h3 className="font-semibold" style={{ fontSize: 'var(--fs-lg)', color: 'var(--text-primary)' }}>7일 예보</h3>
           <span style={{ fontSize: 'var(--fs-xs)', color: 'var(--text-muted)' }}>매일 갱신</span>
         </div>
-        <div className="grid grid-cols-7 divide-x" style={{ borderColor: 'var(--border-subtle)' }}>
+        <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-7 divide-x" style={{ borderColor: 'var(--border-subtle)' }}>
           {forecast.forecasts.map((f, i) => {
             const date = new Date(f.date);
             const dayNames = ['일', '월', '화', '수', '목', '금', '토'];
@@ -210,12 +218,12 @@ export default function WeatherPage() {
           <table className="w-full">
             <thead>
               <tr className="border-b" style={{ borderColor: 'var(--border-subtle)' }}>
-                <th className="px-6 py-3 text-left font-medium uppercase tracking-wider" style={{ fontSize: 'var(--fs-xs)', color: 'var(--text-muted)' }}>기간</th>
-                <th className="px-6 py-3 text-right font-medium uppercase tracking-wider" style={{ fontSize: 'var(--fs-xs)', color: 'var(--text-muted)' }}>평균기온</th>
-                <th className="px-6 py-3 text-right font-medium uppercase tracking-wider" style={{ fontSize: 'var(--fs-xs)', color: 'var(--text-muted)' }}>강수량</th>
-                <th className="px-6 py-3 text-right font-medium uppercase tracking-wider" style={{ fontSize: 'var(--fs-xs)', color: 'var(--text-muted)' }}>습도</th>
-                <th className="px-6 py-3 text-left font-medium uppercase tracking-wider" style={{ fontSize: 'var(--fs-xs)', color: 'var(--text-muted)' }}>날씨</th>
-                <th className="px-6 py-3 text-left font-medium uppercase tracking-wider" style={{ fontSize: 'var(--fs-xs)', color: 'var(--text-muted)' }}>농작업 팁</th>
+                <th className="px-6 py-3 text-left font-medium uppercase tracking-wider" style={{ fontSize: 'var(--fs-sm)', color: 'var(--text-muted)' }}>기간</th>
+                <th className="px-6 py-3 text-right font-medium uppercase tracking-wider" style={{ fontSize: 'var(--fs-sm)', color: 'var(--text-muted)' }}>평균기온</th>
+                <th className="px-6 py-3 text-right font-medium uppercase tracking-wider" style={{ fontSize: 'var(--fs-sm)', color: 'var(--text-muted)' }}>강수량</th>
+                <th className="px-6 py-3 text-right font-medium uppercase tracking-wider" style={{ fontSize: 'var(--fs-sm)', color: 'var(--text-muted)' }}>습도</th>
+                <th className="px-6 py-3 text-left font-medium uppercase tracking-wider" style={{ fontSize: 'var(--fs-sm)', color: 'var(--text-muted)' }}>날씨</th>
+                <th className="px-6 py-3 text-left font-medium uppercase tracking-wider" style={{ fontSize: 'var(--fs-sm)', color: 'var(--text-muted)' }}>농작업 팁</th>
               </tr>
             </thead>
             <tbody className="divide-y" style={{ borderColor: 'var(--border-subtle)' }}>
@@ -244,11 +252,11 @@ export default function WeatherPage() {
           <table className="w-full">
             <thead>
               <tr className="border-b" style={{ borderColor: 'var(--border-subtle)' }}>
-                <th className="px-6 py-3 text-left font-medium uppercase tracking-wider" style={{ fontSize: 'var(--fs-xs)', color: 'var(--text-muted)' }}>항목</th>
-                <th className="px-6 py-3 text-right font-medium uppercase tracking-wider" style={{ fontSize: 'var(--fs-xs)', color: 'var(--text-muted)' }}>올해</th>
-                <th className="px-6 py-3 text-right font-medium uppercase tracking-wider" style={{ fontSize: 'var(--fs-xs)', color: 'var(--text-muted)' }}>작년</th>
-                <th className="px-6 py-3 text-right font-medium uppercase tracking-wider" style={{ fontSize: 'var(--fs-xs)', color: 'var(--text-muted)' }}>평년</th>
-                <th className="px-6 py-3 text-right font-medium uppercase tracking-wider" style={{ fontSize: 'var(--fs-xs)', color: 'var(--text-muted)' }}>평년 대비</th>
+                <th className="px-6 py-3 text-left font-medium uppercase tracking-wider" style={{ fontSize: 'var(--fs-sm)', color: 'var(--text-muted)' }}>항목</th>
+                <th className="px-6 py-3 text-right font-medium uppercase tracking-wider" style={{ fontSize: 'var(--fs-sm)', color: 'var(--text-muted)' }}>올해</th>
+                <th className="px-6 py-3 text-right font-medium uppercase tracking-wider" style={{ fontSize: 'var(--fs-sm)', color: 'var(--text-muted)' }}>작년</th>
+                <th className="px-6 py-3 text-right font-medium uppercase tracking-wider" style={{ fontSize: 'var(--fs-sm)', color: 'var(--text-muted)' }}>평년</th>
+                <th className="px-6 py-3 text-right font-medium uppercase tracking-wider" style={{ fontSize: 'var(--fs-sm)', color: 'var(--text-muted)' }}>평년 대비</th>
               </tr>
             </thead>
             <tbody className="divide-y" style={{ borderColor: 'var(--border-subtle)' }}>
@@ -296,13 +304,13 @@ export default function WeatherPage() {
           <table className="w-full">
             <thead>
               <tr className="border-b" style={{ borderColor: 'var(--border-subtle)' }}>
-                <th className="px-4 py-3 text-center font-medium uppercase tracking-wider" style={{ fontSize: 'var(--fs-xs)', color: 'var(--text-muted)' }}>월</th>
-                <th className="px-4 py-3 text-right font-medium uppercase tracking-wider" style={{ fontSize: 'var(--fs-xs)', color: 'var(--text-muted)' }}>평균</th>
-                <th className="px-4 py-3 text-right font-medium uppercase tracking-wider" style={{ fontSize: 'var(--fs-xs)', color: 'var(--text-muted)' }}>최저</th>
-                <th className="px-4 py-3 text-right font-medium uppercase tracking-wider" style={{ fontSize: 'var(--fs-xs)', color: 'var(--text-muted)' }}>최고</th>
-                <th className="px-4 py-3 text-right font-medium uppercase tracking-wider" style={{ fontSize: 'var(--fs-xs)', color: 'var(--text-muted)' }}>강수량</th>
-                <th className="px-4 py-3 text-right font-medium uppercase tracking-wider" style={{ fontSize: 'var(--fs-xs)', color: 'var(--text-muted)' }}>강수일</th>
-                <th className="px-4 py-3 text-right font-medium uppercase tracking-wider" style={{ fontSize: 'var(--fs-xs)', color: 'var(--text-muted)' }}>일조</th>
+                <th className="px-4 py-3 text-center font-medium uppercase tracking-wider" style={{ fontSize: 'var(--fs-sm)', color: 'var(--text-muted)' }}>월</th>
+                <th className="px-4 py-3 text-right font-medium uppercase tracking-wider" style={{ fontSize: 'var(--fs-sm)', color: 'var(--text-muted)' }}>평균</th>
+                <th className="px-4 py-3 text-right font-medium uppercase tracking-wider" style={{ fontSize: 'var(--fs-sm)', color: 'var(--text-muted)' }}>최저</th>
+                <th className="px-4 py-3 text-right font-medium uppercase tracking-wider" style={{ fontSize: 'var(--fs-sm)', color: 'var(--text-muted)' }}>최고</th>
+                <th className="px-4 py-3 text-right font-medium uppercase tracking-wider" style={{ fontSize: 'var(--fs-sm)', color: 'var(--text-muted)' }}>강수량</th>
+                <th className="px-4 py-3 text-right font-medium uppercase tracking-wider" style={{ fontSize: 'var(--fs-sm)', color: 'var(--text-muted)' }}>강수일</th>
+                <th className="px-4 py-3 text-right font-medium uppercase tracking-wider" style={{ fontSize: 'var(--fs-sm)', color: 'var(--text-muted)' }}>일조</th>
               </tr>
             </thead>
             <tbody className="divide-y" style={{ borderColor: 'var(--border-subtle)' }}>
@@ -345,7 +353,7 @@ export default function WeatherPage() {
 function Metric({ label, value }: { label: string; value: string }) {
   return (
     <div className="rounded-lg p-3 text-center" style={{ background: 'var(--surface-tertiary)' }}>
-      <div className="uppercase tracking-wider" style={{ fontSize: 'var(--fs-xs)', color: 'var(--text-muted)' }}>{label}</div>
+      <div className="uppercase tracking-wider" style={{ fontSize: 'var(--fs-sm)', color: 'var(--text-muted)' }}>{label}</div>
       <div className="font-semibold tabular-nums mt-0.5" style={{ fontSize: 'var(--fs-lg)', color: 'var(--text-primary)' }}>{value}</div>
     </div>
   );

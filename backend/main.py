@@ -10,7 +10,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from core.config import settings
 from core.versioning import VERSION, get_system_info, mark_started
 from core.feature_flags import get_feature_flags
-from api import weather, price, land, statistics, orchard, simulation, variety, trend, forecast
+from api import weather, price, land, statistics, orchard, simulation, variety, trend, forecast, grading
 from services.data_refresher import data_refresher
 from services.anomaly_detector import get_anomaly_detector
 from services.health_monitor import get_health_monitor
@@ -74,6 +74,7 @@ app.include_router(simulation.router)
 app.include_router(variety.router)
 app.include_router(trend.router)
 app.include_router(forecast.router)
+app.include_router(grading.router)
 
 
 # ---------------------------------------------------------------------------

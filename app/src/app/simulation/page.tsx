@@ -266,8 +266,8 @@ function SimulationContent() {
               <select
                 value={config.varietyId}
                 onChange={(e) => handleVarietyChange(e.target.value)}
-                className="w-full px-3 py-2.5 rounded-lg border focus:outline-none focus:ring-2 focus:ring-blue-200"
-                style={{ fontSize: 'var(--fs-base)', borderColor: 'var(--border-default)', background: 'var(--surface-primary)' }}
+                className="w-full px-3 py-2.5 rounded-lg border focus:outline-none focus:ring-2 focus:ring-[var(--brand)]"
+                style={{ fontSize: 'var(--fs-base)', borderColor: 'var(--border-default)', background: 'var(--surface-tertiary)' }}
               >
                 {varieties.map((v) => (
                   <option key={v.id} value={v.id}>{v.name}</option>
@@ -300,8 +300,8 @@ function SimulationContent() {
               </span>
               <input type="number" value={config.treeCount}
                 onChange={(e) => setConfig({ ...config, treeCount: parseInt(e.target.value) || 0 })}
-                className="w-full px-3 py-2.5 rounded-lg border focus:outline-none focus:ring-2 focus:ring-blue-200"
-                style={{ fontSize: 'var(--fs-base)', borderColor: 'var(--border-default)', background: 'var(--surface-primary)' }}
+                className="w-full px-3 py-2.5 rounded-lg border focus:outline-none focus:ring-2 focus:ring-[var(--brand)]"
+                style={{ fontSize: 'var(--fs-base)', borderColor: 'var(--border-default)', background: 'var(--surface-tertiary)' }}
                 min={0} max={10000}
               />
             </label>
@@ -395,6 +395,7 @@ function SimulationContent() {
                       fontSize: 'var(--fs-xs)',
                       borderColor: showCostEdit ? 'var(--brand)' : 'var(--border-default)',
                       color: showCostEdit ? 'var(--brand)' : 'var(--text-muted)',
+                      background: showCostEdit ? 'var(--brand-subtle)' : 'transparent',
                     }}
                   >
                     {showCostEdit ? '편집 완료' : '직접 입력'}

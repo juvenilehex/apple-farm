@@ -454,7 +454,7 @@ export default function DesignPage() {
             href={(() => {
               const params = new URLSearchParams();
               params.set('variety', config.varietyId);
-              params.set('area', String(config.areaPyeong));
+              params.set('area', String(result?.areaPyeong ?? estimateArea));
               if (result) params.set('trees', String(result.treeCount));
               else if (backendEstimate) params.set('trees', String(backendEstimate.total_trees));
               if (backendEstimate?.estimated_yield_kg) params.set('yield_kg', String(backendEstimate.estimated_yield_kg));
@@ -464,7 +464,7 @@ export default function DesignPage() {
             style={{ borderColor: 'var(--border-default)', boxShadow: 'var(--shadow-1)' }}>
             <p className="font-semibold" style={{ fontSize: 'var(--fs-sm)', color: 'var(--text-primary)' }}>설계 결과로 수익 시뮬레이션 →</p>
             <p style={{ fontSize: 'var(--fs-xs)', color: 'var(--text-tertiary)' }}>
-              {result ? `${result.treeCount}주 · ${config.areaPyeong}평 자동 반영` : '면적·나무수 기반 수익 예측'}
+              {result ? `${result.treeCount}주 · ${result.areaPyeong}평 자동 반영` : '면적·나무수 기반 수익 예측'}
             </p>
           </Link>
 
