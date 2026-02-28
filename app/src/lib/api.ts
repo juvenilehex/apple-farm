@@ -175,6 +175,9 @@ export interface SimulationReq {
   yield_per_10a?: number;
   price_per_kg?: number;
   projection_years?: number;
+  rootstock_id?: string;
+  machine_id?: string;
+  region_id?: string;
 }
 
 export interface SimulationRes {
@@ -200,6 +203,23 @@ export interface SimulationRes {
   }[];
   break_even_year: number;
   roi_10year: number;
+  price_source?: string;
+  rootstock_id?: string;
+  initial_investment?: number;
+  investment_breakdown?: {
+    seedling_cost: number;
+    infra_cost: number;
+    seedling_unit: number;
+    rootstock_used: string;
+  };
+  region_grade?: string;
+  grade_impact?: {
+    grade: string;
+    yield_factor: number;
+    premium_shift: number;
+    yield_before: number;
+    yield_after: number;
+  };
 }
 
 export async function fetchSimulation(req: SimulationReq) {

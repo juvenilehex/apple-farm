@@ -93,13 +93,32 @@ async def simulation_trends(window: int = 50):
 @router.post("/feedback")
 async def submit_simulation_feedback(req: FeedbackRequest):
     """시뮬레이션 결과 피드백 제출 (feedback-system R48)"""
-    entry = get_feedback_collector().submit(
+    collector = get_feedback_collector()
+    entry = collector.submit(
         variety=req.variety,
         area_pyeong=req.area_pyeong,
         rating=req.rating,
         comment=req.comment,
     )
-    return {"received": True, "timestamp": entry["timestamp"]}
+
+    # Step 5: 피드백 20건마다 자동 진화 트리거
+    evolution_triggered = False
+    try:
+        from core.feature_flags import get_feature_flags
+        if get_feature_flags().is_enabled("evolution_auto_trigger"):
+            stats = collector.get_stats()
+            if stats.get("total", 0) % 20 == 0 and stats.get("total", 0) > 0:
+                from core.evolution_engine import get_evolution_engine
+                result = get_evolution_engine().evolve()
+                evolution_triggered = result.get("evolved", False)
+    except Exception:
+        pass
+
+    return {
+        "received": True,
+        "timestamp": entry["timestamp"],
+        "evolution_triggered": evolution_triggered,
+    }
 
 
 @router.get("/feedback/stats", response_model=FeedbackStats)

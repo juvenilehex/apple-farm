@@ -166,3 +166,35 @@ def design_orchard(req: OrchardDesignRequest) -> OrchardDesignResponse:
         setback_applied=setback_applied,
         effective_area_m2=round(effective_area, 1),
     )
+
+
+# ---------------------------------------------------------------------------
+# Yield SSOT — 수확량 단일 진실 원천
+# ---------------------------------------------------------------------------
+
+
+def compute_yield_per_10a(
+    variety_id: str,
+    row_sp: float | None = None,
+    tree_sp: float | None = None,
+    rootstock_id: str | None = None,
+) -> float:
+    """10a(1000m²)당 수확량(kg)을 간격·대목으로부터 산출한다.
+
+    수확량 단일 진실 원천(SSOT): 설계·시뮬레이션 양쪽에서 이 함수를 호출하여
+    동일한 수확량을 사용해야 한다.
+
+    계산: trees_per_10a = (1000 × 0.85) / (row_sp × tree_sp)
+          yield_per_10a = yield_per_tree × trees_per_10a
+    """
+    # 간격 결정: 인자 > 대목 > 품종 기본값
+    base_sp = VARIETY_SPACING.get(variety_id, VARIETY_SPACING["default"])
+    if rootstock_id and rootstock_id in ROOTSTOCK_SPACING:
+        base_sp = ROOTSTOCK_SPACING[rootstock_id]
+
+    final_row = row_sp or base_sp.row
+    final_tree = tree_sp or base_sp.tree
+
+    variety_info = VARIETY_YIELD.get(variety_id, VARIETY_YIELD["default"])
+    trees_per_10a = (1000 * 0.85) / (final_row * final_tree)
+    return round(variety_info["yield_per_tree"] * trees_per_10a)

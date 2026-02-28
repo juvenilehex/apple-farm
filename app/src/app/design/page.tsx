@@ -458,6 +458,8 @@ export default function DesignPage() {
               if (result) params.set('trees', String(result.treeCount));
               else if (backendEstimate) params.set('trees', String(backendEstimate.total_trees));
               if (backendEstimate?.estimated_yield_kg) params.set('yield_kg', String(backendEstimate.estimated_yield_kg));
+              if (config.rootstockId) params.set('rootstock', config.rootstockId);
+              if (config.machineId) params.set('machine', config.machineId);
               return `/simulation?${params.toString()}`;
             })()}
             className="block rounded-xl border bg-[var(--surface-primary)] p-4 transition-all duration-150 hover:border-[var(--border-strong)]"

@@ -138,6 +138,8 @@ function SimulationContent() {
   const initPrice = initV.marketValue >= 4 ? 6000 : initV.marketValue >= 3 ? 4500 : 3500;
   const initAreaParam = searchParams.get('area');
   const initTreesParam = searchParams.get('trees');
+  const initRootstock = searchParams.get('rootstock') || undefined;
+  const initMachine = searchParams.get('machine') || undefined;
   const initAreaM2 = initAreaParam ? parseFloat(initAreaParam) * 3.3058 : 3300;
   const initTrees = initTreesParam
     ? parseInt(initTreesParam)

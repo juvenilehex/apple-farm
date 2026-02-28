@@ -280,6 +280,31 @@ class DataRefresher:
 
         try:
             items = await self._fetch_daily_prices()
+
+            # Step 2: PriceCache 업데이트
+            from services.price_cache import get_price_cache
+            get_price_cache().update(items)
+
+            # Step 5: 이상감지 + 진화엔진 연쇄 호출
+            try:
+                from services.anomaly_detector import get_anomaly_detector
+                detector = get_anomaly_detector()
+                for item in items:
+                    variety = item.get("item_name", "사과")
+                    price_str = str(item.get("dpr1", "0")).replace(",", "")
+                    if price_str and price_str != "-":
+                        try:
+                            detector.check_price(variety, float(price_str))
+                        except (ValueError, TypeError):
+                            pass
+
+                from core.feature_flags import get_feature_flags
+                if get_feature_flags().is_enabled("evolution_anomaly_consumption"):
+                    from core.evolution_engine import get_evolution_engine
+                    get_evolution_engine().consume_anomaly_alerts()
+            except Exception as exc:
+                logger.debug("가격 갱신 후 이상감지/진화 연쇄 실패 (무시): %s", exc)
+
             result["success"] = True
             result["records_count"] = len(items)
             self._success_counts[source] += 1

@@ -9,6 +9,9 @@ interface SimulationInput {
   treeCount: number;
   pricePerKg: number;
   organicPremium: boolean;
+  rootstockId?: string;
+  machineId?: string;
+  regionId?: string;
 }
 
 export function useSimulationApi(input: SimulationInput) {
@@ -35,6 +38,9 @@ export function useSimulationApi(input: SimulationInput) {
         area_pyeong: areaPyeong > 0 ? areaPyeong : 1,
         price_per_kg: pricePerKg,
         projection_years: 10,
+        rootstock_id: input.rootstockId,
+        machine_id: input.machineId,
+        region_id: input.regionId,
       })
         .then((res) => {
           if (!cancelled) {
@@ -58,7 +64,7 @@ export function useSimulationApi(input: SimulationInput) {
     return () => {
       if (timeoutRef.current) clearTimeout(timeoutRef.current);
     };
-  }, [input.varietyName, input.areaM2, input.pricePerKg, input.organicPremium]);
+  }, [input.varietyName, input.areaM2, input.pricePerKg, input.organicPremium, input.rootstockId, input.machineId, input.regionId]);
 
   return { backendResult, source, loading };
 }

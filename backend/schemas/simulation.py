@@ -31,6 +31,10 @@ class SimulationRequest(BaseModel):
     yield_per_10a: float | None = None
     price_per_kg: float | None = None
     projection_years: int = 10
+    # Step 3: 설계 컨텍스트 전달
+    rootstock_id: str | None = None
+    machine_id: str | None = None
+    region_id: str | None = None
 
 
 class AnalyticsContext(BaseModel):
@@ -86,6 +90,15 @@ class SimulationResponse(BaseModel):
     analytics_context: AnalyticsContext | None = None
     validation_notes: list[ValidationNote] | None = None
     refined: bool = False
+    # Step 2: 시세 출처
+    price_source: str | None = None  # "user_input" | "kamis_live" | "scenario_default"
+    # Step 3: 설계 컨텍스트
+    rootstock_id: str | None = None
+    initial_investment: int | None = None
+    investment_breakdown: dict | None = None
+    # Step 4: 급지 연동
+    region_grade: str | None = None  # "S" | "A" | "B" | "C"
+    grade_impact: dict | None = None
 
 
 # ---------------------------------------------------------------------------

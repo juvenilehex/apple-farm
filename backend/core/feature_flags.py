@@ -51,6 +51,21 @@ DEFAULTS: dict[str, dict[str, Any]] = {
         "description": "낙관/중립/비관 3시나리오 비교",
         "since": "0.3.0",
     },
+    "simulation_grade_adjustment": {
+        "enabled": True,
+        "description": "급지(S/A/B/C) → 시뮬레이션 수확량·등급비율 보정",
+        "since": "0.4.0",
+    },
+    "evolution_auto_trigger": {
+        "enabled": True,
+        "description": "피드백 20건마다 자동 진화 트리거",
+        "since": "0.4.0",
+    },
+    "evolution_anomaly_consumption": {
+        "enabled": True,
+        "description": "진화엔진이 이상감지 알림을 소비하여 시세 신뢰도 조정",
+        "since": "0.4.0",
+    },
 }
 
 

@@ -151,6 +151,69 @@ class EvolutionEngine:
             return {"has_data": False}
 
     # ------------------------------------------------------------------
+    # Step 5: 이상감지 알림 소비 → 시세 신뢰도 조정
+    # ------------------------------------------------------------------
+    def consume_anomaly_alerts(self) -> dict:
+        """이상감지 알림을 소비하여 관련 파라미터를 조정한다.
+
+        가격 급등/급락 시 farm_gate_ratio를 보수적으로 조정.
+        날씨 이상 시 수확량 보정 계수를 하향.
+        """
+        from core.feature_flags import get_feature_flags
+        if not get_feature_flags().is_enabled("evolution_anomaly_consumption"):
+            return {"consumed": False, "reason": "feature_flag_disabled"}
+
+        try:
+            from services.anomaly_detector import get_anomaly_detector
+            detector = get_anomaly_detector()
+            alerts = detector.get_alerts(limit=50)
+        except Exception:
+            return {"consumed": False, "reason": "anomaly_detector_unavailable"}
+
+        if not alerts:
+            return {"consumed": False, "reason": "no_alerts"}
+
+        modifiers = self._state.setdefault("modifiers", {})
+        adjustments_made = []
+
+        # 가격 이상 → farm_gate_ratio 조정
+        price_alerts = [a for a in alerts if a.get("category") == "price"]
+        if price_alerts:
+            drops = sum(1 for a in price_alerts if a.get("data", {}).get("change_pct", 0) < 0)
+            if drops > len(price_alerts) * 0.6:
+                key = "farm_gate_ratio"
+                prev = modifiers.get(key, 0.82)
+                new_val = round(max(0.70, prev - 0.02), 4)
+                modifiers[key] = new_val
+                adjustments_made.append({
+                    "parameter": key, "previous": prev, "new": new_val,
+                    "reason": f"가격 급락 알림 {drops}/{len(price_alerts)}건",
+                })
+
+        # 날씨 이상 → yield 보정
+        weather_alerts = [a for a in alerts if a.get("category") == "weather"]
+        if weather_alerts:
+            severe = sum(1 for a in weather_alerts if a.get("severity") == "critical")
+            if severe >= 2:
+                key = "yield_modifier_global"
+                prev = modifiers.get(key, 1.0)
+                new_val = round(max(0.7, prev * 0.97), 4)
+                modifiers[key] = new_val
+                adjustments_made.append({
+                    "parameter": key, "previous": prev, "new": new_val,
+                    "reason": f"심각 기상이상 {severe}건 → 수확량 보수 조정",
+                })
+
+        if adjustments_made:
+            self._save_state()
+
+        return {
+            "consumed": True,
+            "alerts_processed": len(alerts),
+            "adjustments": adjustments_made,
+        }
+
+    # ------------------------------------------------------------------
     # 보정 계수 산출
     # ------------------------------------------------------------------
     def _compute_adjustments(self, diagnosis: dict) -> list[dict]:
@@ -199,6 +262,11 @@ class EvolutionEngine:
                 "new": new_val,
                 "reason": f"수확량 범위 경고 {frequent['yield_per_10a']}회",
             })
+
+        # Step 5: 이상감지 알림 기반 조정
+        anomaly_result = self.consume_anomaly_alerts()
+        if anomaly_result.get("consumed") and anomaly_result.get("adjustments"):
+            adjustments.extend(anomaly_result["adjustments"])
 
         return adjustments
 
