@@ -9,7 +9,7 @@ from schemas.price import PriceRecord, PriceTrendResponse, PriceTrendPoint
 logger = logging.getLogger(__name__)
 router = APIRouter(prefix="/api/price", tags=["price"])
 
-KAMIS_BASE = "http://www.kamis.or.kr/service/price/xml.do"
+KAMIS_BASE = "https://www.kamis.or.kr/service/price/xml.do"
 APPLE_PRODUCT_CODE = "411"  # 사과 품목코드
 
 # Mock 데이터

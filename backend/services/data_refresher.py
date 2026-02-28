@@ -87,7 +87,7 @@ _refresh_timer = PipelineStageTimer(["weather_current", "weather_forecast", "pri
 LOG_PATH = Path(__file__).resolve().parent.parent / "data" / "refresh_log.jsonl"
 
 KMA_BASE = "http://apis.data.go.kr/1360000/VilageFcstInfoService_2.0"
-KAMIS_BASE = "http://www.kamis.or.kr/service/price/xml.do"
+KAMIS_BASE = "https://www.kamis.or.kr/service/price/xml.do"
 APPLE_PRODUCT_CODE = "411"
 
 WEATHER_INTERVAL_SECONDS = 3 * 60 * 60   # 3 hours
