@@ -86,7 +86,8 @@ pj18_apple/
     │   ├── health_monitor.py      # 시스템 자가 진단
     │   ├── data_quality.py        # 데이터 품질 스코어링
     │   ├── usage_analytics.py     # 사용 패턴 → 개선 파이프라인
-    │   └── grading.py             # 급지 시스템 (기후 5팩터 S/A/B/C)
+    │   ├── grading.py             # 급지 시스템 (기후 5팩터 S/A/B/C)
+    │   └── price_cache.py         # KAMIS 실시간 시세 캐시 (온톨로지 통합)
     ├── data/              # 런타임 데이터 (.gitignore)
     ├── models/            # DB 모델 (SQLAlchemy)
     │   └── base.py        # PriceHistory, WeatherCache, OrchardPlan
@@ -127,6 +128,7 @@ pj18_apple/
 **✅ 설계 딥다이브 (2026.02.25)**: 대목4종+장비4종+이격규정+관수시설 스펙, 지번 자동 경계(GET /api/land/parcel), 설계 UI 4단계 확장
 **✅ orchard API 동기화 (2026.02.25)**: rootstockId/machineId/setback 백엔드 반영 + 설계→시뮬레이션 자동 전달 (query params)
 **✅ 단기 로드맵 일괄 구현 (2026.02.26)**: pydantic v2 전환, 테스트 47/47 통과, 기상청 base_time 동적화, 프론트엔드 빌드 수정, 급지 시스템 v1 (5팩터 10개 주산지)
+**✅ 온톨로지 통합 (2026.03.01)**: 서비스 간 배선 5단계 — Yield SSOT, PriceCache, 설계→시뮬 대목별투자비, 급지→시뮬 보정, 진화엔진 확장. 테스트 61/61. KAMIS https 수정.
 
 ### API 키 현황
 | 서비스 | 상태 | 비고 |
@@ -221,7 +223,25 @@ python -m services.data_refresher --prices    # 가격만
 - **lifespan 통합**: FastAPI lifespan 에서 시작/종료 관리
 
 <!-- PJ00_SESSION_STATE_START -->
-## 세션 복원 (PJ00 자동 업데이트: 2026-02-28 07:42)
+## 세션 복원 (PJ00 자동 업데이트: 2026-03-01)
 
-최근 작업 없음. 새 작업을 시작하세요.
+### 직전 완료 작업: 온톨로지 통합 (5단계)
+서비스 간 배선 연결 완료. 커밋: `5705964` (master, pushed)
+
+**구현 내역**:
+1. **Yield SSOT**: `orchard.compute_yield_per_10a()` — 설계·시뮬 동일 수확량
+2. **실시간 시세**: `services/price_cache.py` 신규 — KAMIS→캐시→시뮬
+3. **설계→시뮬**: rootstock_id/machine_id/region_id 전달 + 대목별 투자비
+4. **급지→시뮬**: S/A/B/C → 수확량·등급비율 보정 (피처플래그)
+5. **진화엔진**: 이상감지 소비 + 피드백 자동 진화 트리거
+
+**테스트**: 61/61 통과 (기존 47 + 신규 14)
+**프론트엔드 빌드**: 성공
+**KAMIS URL**: http→https 수정 완료
+
+### 다음 작업 후보 (중기 로드맵 1단계)
+- [ ] 브이월드 실연동 (키 발급완료, 만료 2026-08-26)
+- [ ] ASOS 과거 10년 기상 데이터 캐싱
+- [ ] 중기예보 API 추가 (3일→10일)
+- [ ] 급지 v2 (DEM 지형 분석)
 <!-- PJ00_SESSION_STATE_END -->
